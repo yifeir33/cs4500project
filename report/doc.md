@@ -1,3 +1,6 @@
+I procrastinated + combined with moving back home we didn't get to this yet.
+I spent a lot of time trying to clean-up the code.
+Sorry about this.
 ## Introduction:
 where we give a high-level description of the eau2 system.
 
