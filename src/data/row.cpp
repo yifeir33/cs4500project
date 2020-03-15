@@ -111,8 +111,8 @@ void Row::visit(size_t idx, Fielder& f) const {
     f.done();
 }
 
-bool Row::equals(Object *other) const {
-    Row *other_row = dynamic_cast<Row*>(other);
+bool Row::equals(const Object *other) const {
+    const Row *other_row = dynamic_cast<const Row*>(other);
     if(other_row) {
         if(_index == other_row->_index && _width == other_row->_width){
             for(size_t i = 0; i < _width; ++i){

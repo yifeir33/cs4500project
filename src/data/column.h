@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <assert.h>
 
-#include "object.h"
+#include "common/object.h"
 
 // Forward Declarations for Column
 class IntColumn;

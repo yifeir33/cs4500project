@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "object.h"
+#include "common/object.h"
 #include "schema.h"
 #include "fielder.h"
 
@@ -73,7 +73,7 @@ public:
     * Calling this method before the row's fields have been set is undefined. */
     void visit(size_t idx, Fielder& f) const;
 
-    bool equals(Object *other) const override;
+    bool operator==(const Object *other) const override;
 
     size_t hash() const override;
 };

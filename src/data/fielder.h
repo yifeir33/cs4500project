@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "object.h"
+#include "../common/object.h"
 
 /*****************************************************************************
  * Fielder::

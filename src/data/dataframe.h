@@ -4,8 +4,8 @@
 #include <string>
 #include <thread>
 
-#include "helper.h"
-#include "object.h"
+#include "../common/object.h"
+#include "../common/helper.h"
 #include "schema.h"
 #include "rower.h"
 #include "fielder.h"
@@ -61,16 +61,16 @@ private:
             /** Called when all fields have been seen. */
             void done() override;
 
-            size_t hash_me() override;
+            size_t hash() const override;
 
-            bool equals(Object *other) override;
+            bool equals(const Object *other) const override;
         };
     public:
         bool accept(Row& r) override;
 
-        size_t hash_me() override;
+        size_t hash() const override;
 
-        bool equals(Object *other) override;
+        bool equals(const Object *other) const override;
     };
 
 public:
@@ -153,6 +153,6 @@ public:
 
     Object* clone() override;
 
-    size_t hash_me() override;
+    size_t hash() const override;
 
 };

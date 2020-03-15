@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 
-#include "object.h"
+#include "common/object.h"
 #include "column.h"
 
 /*************************************************************************
@@ -69,7 +69,7 @@ public:
     /** The number of rows */
     size_t length() const;
 
-    bool equals(Object* other) const override;
+    bool equals(const Object* other) const override;
 
     size_t hash() const override;
 };

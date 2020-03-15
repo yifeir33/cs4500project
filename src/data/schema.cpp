@@ -80,8 +80,8 @@ size_t Schema::length() const {
     return _length;
 }
 
-bool Schema::equals(Object* other) const {
-    Schema *other_schema = dynamic_cast<Schema*>(other);
+bool Schema::equals(const Object* other) const {
+    const Schema *other_schema = dynamic_cast<const Schema*>(other);
     if(other_schema && this->_width == other_schema->_width && this->_length == other_schema->_length) {
         return _rowNames.equals(&other_schema->_rowNames) 
                && _columnNames.equals(&other_schema->_columnNames) 
