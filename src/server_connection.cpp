@@ -1,6 +1,9 @@
+#include <unistd.h>
+#include <cstring>
+
 #include "server_connection.h"
 
-ServerConnection::ServerConnection(int cfd, SockAddrWrapper* o, Server& s) : Connection(cfd, o), _server(s) {}
+ServerConnection::ServerConnection(int cfd, sockaddr_in caddr, Server& s) : Connection(cfd, caddr), _server(s) {}
 
 ServerConnection::~ServerConnection(){}
 
@@ -19,7 +22,7 @@ void ServerConnection::run() {
             }
             delete packet;
         }
-        sleep(500);
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         if(!this->_keep_alive())
             break;
     } // while
@@ -36,19 +39,15 @@ ParseResult ServerConnection::_parse_data(Packet& packet) {
         if(packet.length != sizeof(sockaddr_in)) {
             return ParseResult::ParseError;
         }
-        SockAddrWrapper *saw = new SockAddrWrapper();
-        memcpy(&saw->addr, packet.value, packet.length);
+        sockaddr_in saddr{};
+        memcpy(&saddr, packet.value, packet.length);
 
         if(packet.type == REGISTER){
-            if(this->_conn_other)
-                delete this->_conn_other;
             // use this to track which client this is
-            this->_conn_other = new SockAddrWrapper(saw);
-
-            _server.update_and_alert(saw);
+            this->_conn_other = saddr;
+            _server.update_and_alert(saddr);
         } else {
-            _server.remove_client(saw);
-            delete saw;
+            _server.remove_client(saddr);
         }
         return ParseResult::Success;
     } else if(packet.type == SHUTDOWN){

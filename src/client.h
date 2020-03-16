@@ -29,7 +29,7 @@ public:
 
     Packet *get_registration_packet();
 
-    Connection* _new_connection(int new_conn_fd, sockaddr_in other) override;
+    std::unique_ptr<Connection> _new_connection(int new_conn_fd, sockaddr_in other) override;
 
     // friends
     friend class CtSConnection;

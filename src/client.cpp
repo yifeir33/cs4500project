@@ -34,8 +34,8 @@ Packet *Client::get_registration_packet() {
     return packet;
 }
 
-Connection *Client::_new_connection(int new_conn_fd, sockaddr_in other) {
-    return new CtCConnection(new_conn_fd, other, *this, true);
+std::unique_ptr<Connection> Client::_new_connection(int new_conn_fd, sockaddr_in other) {
+    return std::make_unique<CtCConnection>(new_conn_fd, other, *this, true);
 }
 
 void Client::_initial() {

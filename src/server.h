@@ -33,4 +33,6 @@ public:
     void _on_clean_up(Connection *c) override;
 
     std::unique_ptr<Connection> _new_connection(int new_conn_fd, sockaddr_in other) override;
+
+    friend class ServerConnection;
 };

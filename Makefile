@@ -21,4 +21,4 @@ $(OBJ)/%.o: $(SRC)/%.cpp
 	$(CXX) $(CXXFLAGS) -I$(SRC) -c $< -o $@
 
 clean:
-	rm $(OBJDIR)/* $(BINDIR)/*
+	rm $(OBJ)/*.o

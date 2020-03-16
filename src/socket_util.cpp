@@ -8,7 +8,7 @@
 #include <sys/socket.h>
 
 namespace socket_util{
-    inline bool get_socket_info(int fd, sockaddr_in& saddr){
+    bool get_socket_info(int fd, sockaddr_in& saddr){
         socklen_t size = sizeof(saddr);
         if(getsockname(fd, reinterpret_cast<sockaddr *>(&saddr), &size) < 0){
             perror("Error getting socket info: ");
@@ -18,7 +18,7 @@ namespace socket_util{
         return true;
     }
 
-    inline bool make_non_blocking(int fd){
+    bool make_non_blocking(int fd){
         // set socket to non-blocking
         if(fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK) < 0){
             perror("Failed to set socket to non-blocking!");
@@ -27,7 +27,7 @@ namespace socket_util{
         return true;
     }
 
-    inline int create_socket(sockaddr_in& self, bool non_block){
+    int create_socket(sockaddr_in& self, bool non_block){
         int sock_fd;
         // create socket
         if((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -58,7 +58,7 @@ namespace socket_util{
         return sock_fd;
     }
 
-    inline int create_socket(const char *ip, in_port_t port, sockaddr_in& self, bool non_block){
+    int create_socket(const char *ip, in_port_t port, sockaddr_in& self, bool non_block){
         self.sin_family = AF_INET;
         if(ip){
             if(inet_pton(AF_INET, ip, &(self.sin_addr)) <= 0){ // convert to proper format
@@ -83,13 +83,13 @@ namespace socket_util{
         return sock_fd;
     }
 
-    inline void clone_sockaddr(sockaddr_in& dest, const sockaddr_in& from) {
+    void clone_sockaddr(sockaddr_in& dest, const sockaddr_in& from) {
         dest.sin_family = from.sin_family;
         dest.sin_port = from.sin_port;
         dest.sin_addr.s_addr = from.sin_addr.s_addr;
     }
 
-    inline bool sockaddr_eq(const sockaddr_in& one, const sockaddr_in& two) {
+    bool sockaddr_eq(const sockaddr_in& one, const sockaddr_in& two) {
         return one.sin_family == two.sin_family
             && one.sin_port == two.sin_port
             && one.sin_addr.s_addr == two.sin_addr.s_addr;

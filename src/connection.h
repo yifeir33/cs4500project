@@ -72,4 +72,6 @@ public:
     Object *clone() const override;
 
     bool equals(const Object* other) const override;
+
+    size_t hash() const override;
 };

@@ -274,3 +274,7 @@ Object *Connection::clone() const {
 bool Connection::equals(const Object* other) const {
     return this == other;
 }
+
+size_t Connection::hash() const {
+    return reinterpret_cast<size_t>(this);
+}

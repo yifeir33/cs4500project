@@ -56,9 +56,13 @@ Packet* Server::get_clients(){
 
 void Server::remove_client(sockaddr_in client) {
     this->_client_mutex.lock();
-    int index = this->_clients.index_of(client);
-    if(index >= 0){
-        this->_clients.remove(index);
+    auto it = this->_clients.begin();
+    while(it != this->_clients.end()) {
+        if(socket_util::sockaddr_eq(client, *it)) {
+            this->_clients.erase(it);
+            break;
+        }
+        ++it;
     }
     this->_client_mutex.unlock();
     this->_new_update = true;
@@ -68,12 +72,10 @@ bool Server::new_client_update() {
     return _new_update;
 }
 
-Connection *Server::_new_connection(int new_connection_fd, SockAddrWrapper *other){
-    return new ServerConnection(new_connection_fd, other, *this);
+std::unique_ptr<Connection> Server::_new_connection(int new_connection_fd, sockaddr_in other){
+    return std::make_unique<ServerConnection>(new_connection_fd, other, *this);
 }
 
 void Server::_on_clean_up(Connection *c) {
-    SockAddrWrapper *osaw = c->get_conn_other();
-    this->remove_client(osaw);
-    delete osaw;
+    this->remove_client(c->get_conn_other());
 }
