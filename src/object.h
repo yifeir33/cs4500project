@@ -13,7 +13,7 @@ public:
     virtual size_t hash() const = 0;
 
     /** Subclasses should redefine */
-    virtual bool equals(const Object  * other) const = 0;
+    virtual bool equals(const Object * other) const = 0;
 
     /** Return a copy of the object; nullptr is considered an error */
     virtual Object* clone() const = 0;
