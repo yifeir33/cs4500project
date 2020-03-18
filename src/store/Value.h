@@ -3,6 +3,9 @@
 
 #include "src/utils/object.h"
 class Value: public Object{
+    /*
+     * serialized data
+     */
     char* data_;
     Value(char* ): data_() {}
 };

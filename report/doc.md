@@ -17,5 +17,10 @@ examples of uses of the system. This could be in the form of code like the one a
 ## Open questions:
 where you list things that you are not sure of and would like the answer to.
 
+//need filereader?
+//what is the net in application?
+//
+
 ## Status:   
 This week we set up the directories as required and wrote tests for key/value store.
+
