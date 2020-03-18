@@ -19,7 +19,4 @@ public:
 
     void deregister_and_shutdown();
 
-    bool equals(const Object* other) const override;
-
-    size_t hash() const override;
 };

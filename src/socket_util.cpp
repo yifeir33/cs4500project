@@ -94,4 +94,4 @@ namespace socket_util{
             && one.sin_port == two.sin_port
             && one.sin_addr.s_addr == two.sin_addr.s_addr;
     }
-};
+}

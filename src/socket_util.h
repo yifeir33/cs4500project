@@ -8,4 +8,4 @@ namespace socket_util {
     int create_socket(const char *ip, in_port_t port, sockaddr_in& self, bool non_block);
     void clone_sockaddr(sockaddr_in& dest, const sockaddr_in& from);
     bool sockaddr_eq(const sockaddr_in& one, const sockaddr_in& two);
-};
+}

@@ -12,17 +12,17 @@ StringColumn* Column::as_string() { return nullptr; }
 /** Type appropriate.push_back_back methods. Calling the wrong method is
 * undefined behavior. **/
 
-void Column::push_back([[maybe_unused]] int val) { exit_if_not(false, "Wrong.push_back back method called on column"); };
-void Column::push_back([[maybe_unused]] bool val) { exit_if_not(false, "Wrong.push_back back method called on column"); };
-void Column::push_back([[maybe_unused]] float val) { exit_if_not(false, "Wrong.push_back back method called on column"); };
-void Column::push_back([[maybe_unused]] std::shared_ptr<std::string> val) { exit_if_not(false, "Wrong.push_back back method called on column"); };
+void Column::push_back([[maybe_unused]] int val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
+void Column::push_back([[maybe_unused]] bool val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
+void Column::push_back([[maybe_unused]] float val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
+void Column::push_back([[maybe_unused]] std::shared_ptr<std::string> val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
 
 size_t Column::hash() const {
     return 500;
 }
 
 // Int Column
-IntColumn::IntColumn(int n, ...) : _data(n) {
+IntColumn::IntColumn(int n, ...) : _data() {
     va_list args;
     va_start(args, n);
 
@@ -80,7 +80,7 @@ Object *IntColumn::clone() const {
 }
 
 // Float Column
-FloatColumn::FloatColumn(int n, ...) : _data(n) {
+FloatColumn::FloatColumn(int n, ...) : _data() {
     va_list args;
     va_start(args, n);
 
@@ -138,7 +138,7 @@ Object *FloatColumn::clone() const {
 }
 
 // Bool Column
-BoolColumn::BoolColumn(int n, ...) : _data(n) {
+BoolColumn::BoolColumn(int n, ...) : _data() {
     va_list args;
     va_start(args, n);
 
@@ -196,7 +196,7 @@ Object *BoolColumn::clone() const {
 }
 
 // String Column
-StringColumn::StringColumn(int n, ...) : _data(n) {
+StringColumn::StringColumn(int n, ...) : _data() {
     va_list args;
     va_start(args, n);
 

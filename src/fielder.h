@@ -11,7 +11,6 @@
  */
 class Fielder : public Object {
 public:
-
     /** Called before visiting a row, the argument is the row offset in the
     dataframe. */
     virtual void start(size_t r);
@@ -24,6 +23,4 @@ public:
 
     /** Called when all fields have been seen. */
     virtual void done();
-
-    size_t hash() const override = 0;
 };

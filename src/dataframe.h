@@ -22,7 +22,7 @@
  */
 class DataFrame : public Object {
 private:
-    Schema& _schema;
+    std::shared_ptr<Schema> _schema;
     std::vector<std::unique_ptr<Column>> _columns;
 
     std::unique_ptr<Column> _get_col_from_type(char type) const;
@@ -43,11 +43,7 @@ private:
     private:
         /* Helper Fielder to print the dataframe */
         class PrintFielder : public Fielder {
-        private:
-            Sys _sys;
-
         public:
-            void start(size_t r) override;
             /** Called for fields of the argument's type with the value of the field. */
             void accept(bool b) override;
 
@@ -66,7 +62,11 @@ private:
 
             Object *clone() const override;
         };
+
+        PrintFielder pf;
     public:
+        PrintRower() = default;
+
         bool accept(Row& r) override;
 
         void join_delete(Rower* other) override;
@@ -84,7 +84,7 @@ public:
 
     /** Create a data frame from a schema and columns. All columns are created
     * empty. */
-    DataFrame(Schema& schema);
+    DataFrame(std::shared_ptr<Schema> schema);
 
     virtual ~DataFrame();
 

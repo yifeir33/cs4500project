@@ -69,6 +69,8 @@ public:
     /** The number of rows */
     size_t length() const;
 
+    Object *clone() const override;
+
     bool equals(const Object* other) const override;
 
     size_t hash() const override;

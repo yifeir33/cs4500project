@@ -1,6 +1,6 @@
 #include "row.h"
 
-Row::Row(const Schema& scm) : _width(scm.width()), _types(new char[_width]), _values(new Row::Schema_Value[_width]), _index(0) {
+Row::Row(const Schema& scm) : _width(scm.width()), _types(new char[_width]), _values(_width), _index(0) {
     for(size_t i = 0; i < _width; ++i) {
         _types[i] = scm.col_type(i);
     }
@@ -8,32 +8,31 @@ Row::Row(const Schema& scm) : _width(scm.width()), _types(new char[_width]), _va
 
 Row::~Row() {
     delete[] _types;
-    delete[] _values;
 }
 
 /** Setters: set the given column with the given value. Setting a column with
 * a value of the wrong type is undefined. */
 void Row::set(size_t col, int val) {
-    assert(col >= 0 && col < _width);
+    assert(col < _width);
     assert(_types[col] == 'I');
-    _values[col].i = val;
+    _values[col] = val;
 }
 
 void Row::set(size_t col, float val) {
-    assert(col >= 0 && col < _width);
+    assert(col < _width);
     assert(_types[col] == 'F');
-    _values[col].f = val;
+    _values[col] = val;
 }
 
 void Row::set(size_t col, bool val) {
-    assert(col >= 0 && col < _width);
+    assert(col < _width);
     assert(_types[col] == 'B');
-    _values[col].b = val;
+    _values[col] = val;
 }
 
 /** The string is external. */
 void Row::set(size_t col, std::shared_ptr<std::string> val){
-    *_values[col].s = val;
+    _values[col] = val;
 }
 
 /** Set/get the index of this row (ie. its position in the dataframe. This is
@@ -50,27 +49,19 @@ size_t Row::get_index() const {
 /** Getters: get the value at the given column. If the column is not
 * of the requested type, the result is undefined. */
 int Row::get_int(size_t col) const {
-    assert(col >= 0 && col < _width);
-    assert(_types[col] == 'I');
-    return _values[col].i;
+    return std::get<int>(_values[col]);
 }
 
 bool Row::get_bool(size_t col) const {
-    assert(col >= 0 && col < _width);
-    assert(_types[col] == 'B');
-    return _values[col].b;
+    return std::get<bool>(_values[col]);
 }
 
 float Row::get_float(size_t col) const {
-    assert(col >= 0 && col < _width);
-    assert(_types[col] == 'F');
-    return _values[col].f;
+    return std::get<float>(_values[col]);
 }
 
 std::shared_ptr<std::string> Row::get_string(size_t col) const {
-    assert(col >= 0 && col < _width);
-    assert(_types[col] == 'S');
-    return *_values[col].s;
+    return std::get<std::shared_ptr<std::string>>(_values[col]);
 }
 
 /** Number of fields in the row. */
@@ -80,7 +71,7 @@ size_t Row::width() const {
 
 /** Type of the field at the given position. An idx >= width is  undefined. */
 char Row::col_type(size_t idx) const {
-    assert(idx >= 0 && idx < _width);
+    assert(idx < _width);
     return _types[idx];
 }
 

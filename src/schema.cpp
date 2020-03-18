@@ -3,29 +3,28 @@
 /** Copying constructor */
 Schema::Schema(const Schema& from) : _columnNames(),_rowNames(),
  _columnTypes(from._columnTypes), _width(from._width),
-_length(from._length) {};
+_length(from._length) {}
 
 /** Create an empty schema **/
-Schema::Schema() : _columnNames(10), _rowNames(10), _columnTypes(10), _width(0), _length(0) {};
+Schema::Schema() : _columnNames(10), _rowNames(10), _columnTypes(10), _width(0), _length(0) {}
 
 /** Create a schema from a string of types. A string that contains
 * characters other than those identifying the four type results in
 * undefined behavior. The argument is external, a nullptr argument is
 * undefined. **/
-Schema::Schema(std::string& types) : Schema(types.c_str()) {};
+Schema::Schema(std::string& types) : Schema(types.c_str()) {}
 
-Schema::Schema(const char* types) : _columnNames(10), _rowNames(10),
-_columnTypes(10), _width(0), _length(0) {
-    assert(types);
+Schema::Schema(const char* types) : _columnNames(), _rowNames(),
+_columnTypes(), _width(0), _length(0) {
     const char *c = types;
-    while(*c !='\0') {
+    while(*c != '\0') {
         if(*c != ' '){
             _columnTypes.push_back(*c);
+            ++_width;
         }
         ++c;
-        ++_width;
     }
-};
+}
 
 /** Add a column of the given type and name (can be nullptr), name
 * is external. Names are expectd to be unique, duplicates result
@@ -88,6 +87,10 @@ size_t Schema::width() const {
 /** The number of rows */
 size_t Schema::length() const {
     return _length;
+}
+
+Object *Schema::clone() const {
+    return new Schema(*this);
 }
 
 bool Schema::equals(const Object* other) const {

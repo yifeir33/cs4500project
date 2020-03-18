@@ -23,8 +23,6 @@ public:
       original object will be the last to be called join on. The join method
       is reponsible for cleaning up memory. */
     virtual void join_delete(Rower* other) = 0;
-
-    size_t hash() const override = 0;
 };
 
 

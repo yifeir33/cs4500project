@@ -8,6 +8,7 @@
  */
 class Sys {
 public:
+    virtual ~Sys() = default;
 
     // Printing functions
     const Sys& p(char* c) const;

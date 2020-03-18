@@ -4,9 +4,9 @@ DataFrame::DataFrame(const DataFrame& df) : DataFrame(df._schema) {}
 
 /** Create a data frame from a schema and columns. All columns are created
 * empty. */
-DataFrame::DataFrame(Schema& schema) : _schema(schema), _columns(schema.width()) {
-    for(size_t i = 0; i < schema.width(); ++i){
-        auto col = _get_col_from_type(schema.col_type(i));
+DataFrame::DataFrame(std::shared_ptr<Schema> schema) : _schema(schema), _columns() {
+    for(size_t i = 0; i < schema->width(); ++i){
+        auto col = _get_col_from_type(schema->col_type(i));
         assert(col);
         _columns.push_back(std::move(col));
     }
@@ -25,6 +25,7 @@ std::unique_ptr<Column> DataFrame::_get_col_from_type(char type) const {
         case 'S':
             return std::make_unique<StringColumn>();
         default:
+            p("Unknown Column Type: ").p(type).p('(').p((int) type).p(')').pln();
             return std::unique_ptr<Column>(nullptr);
     }
 }
@@ -32,14 +33,14 @@ std::unique_ptr<Column> DataFrame::_get_col_from_type(char type) const {
 /** Returns the dataframe's schema. Modifying the schema after a dataframe
 * has been created in undefined. */
 const Schema& DataFrame::get_schema() const {
-    return _schema;
+    return *_schema;
 }
 
 /** Adds a column this dataframe, updates the schema, the new column
 * is external, and appears as the last column of the dataframe, the
 * name is optional and external. A nullptr colum is undefined. */
 void DataFrame::add_column(std::unique_ptr<Column> col, std::shared_ptr<std::string> name){
-    _schema.add_column(col->get_type(), name);
+    _schema->add_column(col->get_type(), name);
     _columns.push_back(std::move(col));
 }
 
@@ -63,12 +64,12 @@ std::weak_ptr<std::string> DataFrame::get_string(size_t col, size_t row) const {
 
 /** Return the offset of the given column name or -1 if no such col. */
 int DataFrame::get_col(std::string& col) const {
-    return _schema.col_idx(col);
+    return _schema->col_idx(col);
 }
 
 /** Return the offset of the given row name or -1 if no such row. */
 int DataFrame::get_row(std::string& row) const {
-    return _schema.row_idx(row);
+    return _schema->row_idx(row);
 }
 
 /** Set the value at the given column and row to the given value.
@@ -97,7 +98,7 @@ void DataFrame::set(size_t col, size_t row, std::shared_ptr<std::string> val) {
 void DataFrame::fill_row(size_t idx, Row& row) const {
     row.set_index(idx);
     for(size_t c = 0; c < _columns.size(); ++c){
-        switch(_schema.col_type(c)){
+        switch(_schema->col_type(c)){
             case 'I':
                 row.set(c, this->get_int(c, idx));
                 break;
@@ -144,7 +145,7 @@ size_t DataFrame::nrows() const {
     if(ncols() > 0){
         return _columns[0]->size();
     } else {
-        return _schema.length();
+        return _schema->length();
     } 
 }
 
@@ -156,7 +157,7 @@ size_t DataFrame::ncols() const {
 /** Visit rows in order */
 void DataFrame::map(Rower& r) const {
     for(size_t i = 0; i < this->nrows(); ++i) {
-        Row row(_schema);
+        Row row(*_schema);
         this->fill_row(i, row);
         r.accept(row);
     }
@@ -173,7 +174,7 @@ void DataFrame::map(Rower& r) const {
  */
 void DataFrame::_pmap_helper(size_t row_start, size_t row_end, Rower *rower) const {
     for(size_t r = row_start; r < row_end; ++r) {
-        Row row(_schema);
+        Row row(*_schema);
         this->fill_row(r, row);
         rower->accept(row);
     }
@@ -246,8 +247,8 @@ void DataFrame::pmap(Rower& r) const {
 DataFrame* DataFrame::filter(Rower& r) const {
     DataFrame *df = new DataFrame(*this);
 
-    for(size_t i = 0; i < _schema.length(); ++i) {
-        Row row(_schema);
+    for(size_t i = 0; i < _schema->length(); ++i) {
+        Row row(*_schema);
         this->fill_row(i, row);
         if(r.accept(row)) {
             df->add_row(row);
@@ -266,7 +267,7 @@ void DataFrame::print() const {
 bool DataFrame::equals(const Object* other) const {
     const DataFrame *df_other = dynamic_cast<const DataFrame*>(other);
     if(!df_other) return false;
-    return _columns == df_other->_columns && _schema.equals(&df_other->_schema);
+    return _columns == df_other->_columns && _schema->equals(df_other->_schema.get());
 }
 
 Object* DataFrame::clone() const {
@@ -274,7 +275,7 @@ Object* DataFrame::clone() const {
 }
 
 size_t DataFrame::hash() const {
-    size_t hash = _schema.hash();
+    size_t hash = _schema->hash();
     for(size_t i = 0; i < _columns.size(); ++i){
         hash += _columns[i]->hash();
     }
@@ -283,8 +284,7 @@ size_t DataFrame::hash() const {
 
 // Print Rower
 bool DataFrame::PrintRower::accept(Row& r){
-    PrintFielder pf;
-    r.visit(r.get_index(), pf);
+    r.visit(r.get_index(), this->pf);
     return true;
 }
 
@@ -293,11 +293,11 @@ void DataFrame::PrintRower::join_delete([[maybe_unused]]Rower* other) {
 }
 
 size_t DataFrame::PrintRower::hash() const {
-    return Rower::hash() + 100;
+    return 100;
 }
 
 bool DataFrame::PrintRower::equals(const Object *other) const {
-    return dynamic_cast<const PrintRower*>(other);
+    return dynamic_cast<const DataFrame::PrintRower*>(other);
 }
 
 Object* DataFrame::PrintRower::clone() const {
@@ -308,19 +308,19 @@ Object* DataFrame::PrintRower::clone() const {
 /* void DataFrame::PrintRower::PrintFielder::start(size_t r){} */
 /** Called for fields of the argument's type with the value of the field. */
 void DataFrame::PrintRower::PrintFielder::accept(bool b){
-    _sys.p('<').p(b).p('>');
+    p('<').p(b).p('>');
 }
 
 void DataFrame::PrintRower::PrintFielder::accept(float f){
-    _sys.p('<').p(f).p('>');
+    p('<').p(f).p('>');
 }
 
 void DataFrame::PrintRower::PrintFielder::accept(int i){
-    _sys.p('<').p(i).p('>');
+    p('<').p(i).p('>');
 }
 
 void DataFrame::PrintRower::PrintFielder::accept(std::weak_ptr<std::string> s){
-    _sys.p('<').p(s.lock()->c_str()).p('>');
+    p('<').p(s.lock()->c_str()).p('>');
 }
 
 Object* DataFrame::PrintRower::PrintFielder::clone() const {
@@ -329,13 +329,13 @@ Object* DataFrame::PrintRower::PrintFielder::clone() const {
 
 /** Called when all fields have been seen. */
 void DataFrame::PrintRower::PrintFielder::done(){
-    _sys.p('\n');
+    pln();
 }
 
 size_t DataFrame::PrintRower::PrintFielder::hash() const {
-    return Fielder::hash() + 100;
+    return 100;
 }
 
 bool DataFrame::PrintRower::PrintFielder::equals(const Object *other) const {
-    return dynamic_cast<const PrintFielder*>(other);
+    return dynamic_cast<const DataFrame::PrintRower::PrintFielder *>(other);
 }

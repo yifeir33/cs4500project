@@ -166,7 +166,7 @@ ParseResult Connection::_parse_data(Packet& packet){
                 else 
                     pln("Error Received:");
 
-                char msg[packet.length + 1];
+                char msg[DATA_MAX] = {0};
                 memcpy(msg, &packet.value, packet.length);
                 msg[packet.length] = '\0';
                 pln(msg);
@@ -188,7 +188,7 @@ ParseResult Connection::_parse_data(Packet& packet){
     return ParseResult::Success;
 }
 
-int Connection::_respond(Packet& msg){ return 0; }
+int Connection::_respond([[maybe_unused]] Packet& msg){ return 0; }
 
 bool Connection::receive_and_parse() {
     if(this->receive_data() < 0) {

@@ -4,9 +4,9 @@
 #include <random>
 #include <memory>
 
-#include "src/data/dataframe.h"
-#include "src/data/schema.h"
-#include "src/data/row.h"
+#include "dataframe.h"
+#include "schema.h"
+#include "row.h"
 
 #define SEED 102102
 
@@ -30,7 +30,7 @@ float generate_float(){
     return generate_int() * 1.0 / ((rand() % 5) * 1.0);
 }
 
-std::string *generate_string(){
+std::shared_ptr<std::string> generate_string(){
     char buffer[11]{};
     size_t length = rand() % 10;
     size_t i = 0;
@@ -40,12 +40,12 @@ std::string *generate_string(){
         ++i;
     }
     buffer[length] = '\0';
-    return new std::string(buffer);
+    return std::make_shared<std::string>(buffer);
 }
 
 bool generate_large_dataframe(DataFrame& df, size_t nrows){
     if(!initalized) init();
-    Schema& scm = df.get_schema();
+    const Schema& scm = df.get_schema();
 
     Row r(scm);
     for(size_t i = 0; i < nrows; ++i){
@@ -69,7 +69,7 @@ bool generate_large_dataframe(DataFrame& df, size_t nrows){
                     }
                 case 'S':
                     {
-                        r.set(j, std::make_shared(generate_string()));
+                        r.set(j, generate_string());
                         break;
                     }
                 default:

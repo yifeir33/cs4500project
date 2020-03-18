@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include <variant>
 
 #include "object.h"
 #include "schema.h"
@@ -16,16 +18,11 @@
  */
 class Row : public Object {
 private:
-    union Schema_Value {
-        int i;
-        float f;
-        bool b;
-        std::shared_ptr<std::string> *s;
-    };
+    typedef std::variant<int, float, bool, std::shared_ptr<std::string>> schema_variant;
 
     size_t _width;
     char *_types;
-    Schema_Value *_values;
+    std::vector<schema_variant> _values;
     size_t _index;
     std::string _name;
 
