@@ -12,19 +12,21 @@ using namespace std;
 
 class KVstore: public Object{
 private:
-    unordered_map<Key,Value, KeyHashFunction> _local_map;
+    unordered_map<Key, Value> _local_map;
     /**
      * not sure for the sockaddr part
      */
-    unordered_map<sockaddr_in,unordered_set<Key>> _other_nodes;
+    unordered_map<sockaddr_in, unordered_set<Key>> _other_nodes;
 public:
     KVstore();
     Value get(Key k){
         if(_local_map.find(k) != _local_map.end()){
             return _local_map[k];
         } else{
-            for(auto &&client: _other_nodes){
-                if(_other_nodes[client].find(k) != _other_nodes[client].end()){
+            for(auto kv: _other_nodes){
+                if(kv.second().find(k) != kv.second().end())
+                if(_other_nodes[kv.first()].find(k) != _other_nodes[client].end()){
+                    kv.first()
                     //get key from network and return
                 }
             }
@@ -37,6 +39,14 @@ public:
             //update
         }
         _local_map.insert_or_assign(k,v);
+    }
+
+    std::shared_ptr<std::unordered_set<Key>> get_keys() {
+        auto set = std::make_shared<std::unordered_set<Key>>();
+        for(auto kv : _local_map) {
+            set->insert(kv.first());
+        }
+        return set;
     }
 
 
