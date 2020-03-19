@@ -9,6 +9,7 @@
 #include "rower.h"
 #include "fielder.h"
 #include "column.h"
+#include "kvstore.h"
 
 #define MAX_THREADS    8
 #define THREAD_ROWS    5000
@@ -47,7 +48,7 @@ private:
             /** Called for fields of the argument's type with the value of the field. */
             void accept(bool b) override;
 
-            void accept(float f) override;
+            void accept(double f) override;
 
             void accept(int i) override;
 
@@ -79,6 +80,14 @@ private:
     };
 
 public:
+    static std::shared_ptr<DataFrame> from_array(KVStore& kvs, KVStore::Key k, int *arr, size_t arr_len);
+    static std::shared_ptr<DataFrame> from_array(KVStore& kvs, KVStore::Key k, double *arr, size_t arr_len);
+    static std::shared_ptr<DataFrame> from_array(KVStore& kvs, KVStore::Key k, bool *arr, size_t arr_len);
+    // TODO: string
+
+    // Creates a dataframe with an empty schema
+    DataFrame();
+
     /** Create a data frame with the same columns as the given df but with no rows or rownames */
     DataFrame(const DataFrame& df);
 
@@ -103,7 +112,7 @@ public:
 
     bool get_bool(size_t col, size_t row) const;
 
-    float get_float(size_t col, size_t row) const;
+    double get_double(size_t col, size_t row) const;
 
     std::weak_ptr<std::string> get_string(size_t col, size_t row) const;
 
@@ -120,7 +129,7 @@ public:
 
     void set(size_t col, size_t row, bool val);
 
-    void set(size_t col, size_t row, float val);
+    void set(size_t col, size_t row, double val);
 
     void set(size_t col, size_t row, std::shared_ptr<std::string> val);
 
@@ -160,4 +169,5 @@ public:
 
     size_t hash() const override;
 
+    bool operator==(const DataFrame& other) const;
 };

@@ -18,8 +18,8 @@ private:
             _sum += b;
         }
 
-        void accept(float f) override {
-            _sum += f;
+        void accept(double d) override {
+            _sum += d;
         }
 
         void accept(int i) override {

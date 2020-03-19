@@ -1,5 +1,44 @@
 #include "dataframe.h"
 
+// static functions
+std::shared_ptr<DataFrame> DataFrame::from_array(KVStore& kvs, KVStore::Key k, bool *arr, size_t arr_len) {
+    auto df = std::make_shared<DataFrame>();
+    auto col = std::make_unique<BoolColumn>();
+    assert(col);
+    for(size_t i = 0; i < arr_len; ++i) {
+        col->push_back(arr[i]);
+    }
+    df->add_column(std::move(col), std::shared_ptr<std::string>(nullptr));
+    kvs.set(k, df);
+    return df;
+}
+
+std::shared_ptr<DataFrame> DataFrame::from_array(KVStore& kvs, KVStore::Key k, double *arr, size_t arr_len) {
+    auto df = std::make_shared<DataFrame>();
+    auto col = std::make_unique<FloatColumn>();
+    assert(col);
+    for(size_t i = 0; i < arr_len; ++i) {
+        col->push_back(arr[i]);
+    }
+    df->add_column(std::move(col), std::shared_ptr<std::string>(nullptr));
+    kvs.set(k, df);
+    return df;
+}
+
+std::shared_ptr<DataFrame> DataFrame::from_array(KVStore& kvs, KVStore::Key k, int *arr, size_t arr_len) {
+    auto df = std::make_shared<DataFrame>();
+    auto col = std::make_unique<IntColumn>();
+    assert(col);
+    for(size_t i = 0; i < arr_len; ++i) {
+        col->push_back(arr[i]);
+    }
+    df->add_column(std::move(col), std::shared_ptr<std::string>(nullptr));
+    kvs.set(k, df);
+    return df;
+}
+
+DataFrame::DataFrame() : _schema(std::make_shared<Schema>()) {}
+
 DataFrame::DataFrame(const DataFrame& df) : DataFrame(df._schema) {}
 
 /** Create a data frame from a schema and columns. All columns are created
@@ -54,7 +93,7 @@ bool DataFrame::get_bool(size_t col, size_t row) const {
     return _columns[col]->as_bool()->get(row);
 }
 
-float DataFrame::get_float(size_t col, size_t row) const {
+double DataFrame::get_double(size_t col, size_t row) const {
     return _columns[col]->as_float()->get(row);
 }
 
@@ -83,7 +122,7 @@ void DataFrame::set(size_t col, size_t row, bool val) {
     _columns[col]->as_bool()->set(row, val);
 }
 
-void DataFrame::set(size_t col, size_t row, float val) {
+void DataFrame::set(size_t col, size_t row, double val) {
     _columns[col]->as_float()->set(row, val);
 }
 
@@ -103,7 +142,7 @@ void DataFrame::fill_row(size_t idx, Row& row) const {
                 row.set(c, this->get_int(c, idx));
                 break;
             case 'F':
-                row.set(c, this->get_float(c, idx));
+                row.set(c, this->get_double(c, idx));
                 break;
             case 'B':
                 row.set(c, this->get_bool(c, idx));
@@ -126,7 +165,7 @@ void DataFrame::add_row(Row& row) {
                 _columns[c]->push_back(row.get_int(c));
                 break;
             case 'F':
-                _columns[c]->push_back(row.get_float(c));
+                _columns[c]->push_back(row.get_double(c));
                 break;
             case 'B':
                 _columns[c]->push_back(row.get_bool(c));
@@ -282,6 +321,10 @@ size_t DataFrame::hash() const {
     return hash;
 }
 
+bool DataFrame::operator==(const DataFrame& other) const {
+    return _columns == other._columns && _schema->equals(other._schema.get());
+}
+
 // Print Rower
 bool DataFrame::PrintRower::accept(Row& r){
     r.visit(r.get_index(), this->pf);
@@ -311,7 +354,7 @@ void DataFrame::PrintRower::PrintFielder::accept(bool b){
     p('<').p(b).p('>');
 }
 
-void DataFrame::PrintRower::PrintFielder::accept(float f){
+void DataFrame::PrintRower::PrintFielder::accept(double f){
     p('<').p(f).p('>');
 }
 

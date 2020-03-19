@@ -13,7 +13,7 @@ public:
     // Printing functions
     const Sys& p(char* c) const;
     const Sys& p(bool c) const;
-    const Sys& p(float c) const;
+    const Sys& p(double c) const;
     const Sys& p(int i) const;
     const Sys& p(size_t i) const;
     const Sys& p(const char* c) const;
@@ -23,7 +23,7 @@ public:
     const Sys& pln(char* c) const;
     const Sys& pln(bool c) const;
     const Sys& pln(char c) const;
-    const Sys& pln(float x) const;
+    const Sys& pln(double x) const;
     const Sys& pln(size_t x) const;
     const Sys& pln(const char* c) const;
 

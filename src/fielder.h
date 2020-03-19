@@ -17,7 +17,7 @@ public:
 
     /** Called for fields of the argument's type with the value of the field. */
     virtual void accept(bool b);
-    virtual void accept(float f);
+    virtual void accept(double d);
     virtual void accept(int i);
     virtual void accept(std::weak_ptr<std::string> s);
 

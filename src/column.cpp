@@ -14,7 +14,7 @@ StringColumn* Column::as_string() { return nullptr; }
 
 void Column::push_back([[maybe_unused]] int val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
 void Column::push_back([[maybe_unused]] bool val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
-void Column::push_back([[maybe_unused]] float val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
+void Column::push_back([[maybe_unused]] double val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
 void Column::push_back([[maybe_unused]] std::shared_ptr<std::string> val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
 
 size_t Column::hash() const {
@@ -90,11 +90,11 @@ FloatColumn::FloatColumn(int n, ...) : _data() {
     va_end(args);
 }
 
-void FloatColumn::push_back(float val) {
+void FloatColumn::push_back(double val) {
   _data.push_back(val);
 }
 
-float FloatColumn::get(size_t idx) const {
+double FloatColumn::get(size_t idx) const {
   return _data[idx];
 }
 
@@ -102,8 +102,8 @@ FloatColumn* FloatColumn::as_float() {
   return this;
 }
 /** Set value at idx. An out of bound idx is undefined.  */
-float FloatColumn::set(size_t idx, float val) {
-    float old = _data[idx];
+double FloatColumn::set(size_t idx, double val) {
+    double old = _data[idx];
     _data[idx] = val;
     return old;
 }

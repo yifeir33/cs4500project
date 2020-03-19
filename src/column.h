@@ -35,7 +35,7 @@ public:
     * undefined behavior. **/
     virtual void push_back(int val);
     virtual void push_back(bool val);
-    virtual void push_back(float val);
+    virtual void push_back(double val);
     virtual void push_back(std::shared_ptr<std::string> val);
 
     /** Returns the number of elements in the column. */
@@ -84,19 +84,19 @@ public:
  */
 class FloatColumn : public Column {
 private:
-    std::vector<float> _data;
+    std::vector<double> _data;
 
 public:
     FloatColumn() = default;
     FloatColumn(int n, ...);
 
-    void push_back(float val) override;
+    void push_back(double val) override;
 
-    float get(size_t idx) const;
+    double get(size_t idx) const;
 
     FloatColumn* as_float() override;
     /** Set value at idx. An out of bound idx is undefined.  */
-    float set(size_t idx, float val);
+    double set(size_t idx, double val);
 
     size_t size() const override;
 

@@ -18,7 +18,7 @@ void Row::set(size_t col, int val) {
     _values[col] = val;
 }
 
-void Row::set(size_t col, float val) {
+void Row::set(size_t col, double val) {
     assert(col < _width);
     assert(_types[col] == 'F');
     _values[col] = val;
@@ -56,8 +56,8 @@ bool Row::get_bool(size_t col) const {
     return std::get<bool>(_values[col]);
 }
 
-float Row::get_float(size_t col) const {
-    return std::get<float>(_values[col]);
+double Row::get_double(size_t col) const {
+    return std::get<double>(_values[col]);
 }
 
 std::shared_ptr<std::string> Row::get_string(size_t col) const {
@@ -87,7 +87,7 @@ void Row::visit(size_t idx, Fielder& f) const {
                 f.accept(this->get_int(i));
                 break;
             case 'F':
-                f.accept(this->get_float(i));
+                f.accept(this->get_double(i));
                 break;
             case 'B':
                 f.accept(this->get_bool(i));
@@ -115,7 +115,7 @@ bool Row::equals(const Object *other) const {
 
                         break;
                     case 'F':
-                        if(this->get_float(i) != other_row->get_float(i))
+                        if(this->get_double(i) != other_row->get_double(i))
                             return false;
 
                         break;
@@ -146,7 +146,7 @@ size_t Row::hash() const {
                 hash += this->get_int(i) * i;
                 break;
             case 'F':
-                hash += this->get_float(i) * i;
+                hash += this->get_double(i) * i;
                 break;
             case 'B':
                 hash += this->get_bool(i) * i;

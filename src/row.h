@@ -18,7 +18,7 @@
  */
 class Row : public Object {
 private:
-    typedef std::variant<int, float, bool, std::shared_ptr<std::string>> schema_variant;
+    typedef std::variant<int, double, bool, std::shared_ptr<std::string>> schema_variant;
 
     size_t _width;
     char *_types;
@@ -36,7 +36,7 @@ public:
     * a value of the wrong type is undefined. */
     void set(size_t col, int val);
 
-    void set(size_t col, float val);
+    void set(size_t col, double val);
 
     void set(size_t col, bool val);
 
@@ -55,7 +55,7 @@ public:
 
     bool get_bool(size_t col) const;
 
-    float get_float(size_t col) const;
+    double get_double(size_t col) const;
 
     std::shared_ptr<std::string> get_string(size_t col) const;
 
