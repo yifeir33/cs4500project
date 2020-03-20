@@ -1,4 +1,4 @@
-#include "schema.h"
+#include "data/schema.h"
 
 /** Copying constructor */
 Schema::Schema(const Schema& from) : _columnNames(),_rowNames(),

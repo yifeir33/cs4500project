@@ -1,6 +1,7 @@
 MKFILE_PATH  := $(abspath $(lastword $(MAKEFILE_LIST)))
 TOP_DIR      := $(dir $(MKFILE_PATH))
 
+INCLUDE      := $(TOP_DIR)include
 SRC          := $(TOP_DIR)src
 TESTS        := $(TOP_DIR)tests
 OBJ          := $(TOP_DIR)objs
@@ -26,7 +27,7 @@ STORE_OBJS   := $(patsubst $(STORE)/%.cpp, $(OBJ)/%.o, $(STORE_SRCS))
 SRC_OBJS     := $(UTIL_OBJS) $(NETWORK_OBJS) $(DATA_OBJS) $(STORE_OBJS)
 
 CXX          := g++
-CXXFLAGS     := -Wall -Wextra -Wpedantic -g -pthread -std=c++17 -I$(SRC)
+CXXFLAGS     := -Wall -Wextra -Wpedantic -g -pthread -std=c++17 -I$(INCLUDE)
 
 .PHONY: all test clean
 

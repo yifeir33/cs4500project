@@ -1,7 +1,7 @@
 #pragma once
 
-#include "client.h"
-#include "connection.h"
+#include "network/client.h"
+#include "network/connection.h"
 
 class CtCConnection : public Connection {
 protected:

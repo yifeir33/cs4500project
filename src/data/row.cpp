@@ -1,4 +1,4 @@
-#include "row.h"
+#include "data/row.h"
 
 Row::Row(const Schema& scm) : _width(scm.width()), _types(new char[_width]), _values(_width), _index(0) {
     for(size_t i = 0; i < _width; ++i) {

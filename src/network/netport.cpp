@@ -7,8 +7,8 @@
 #include <arpa/inet.h>
 #include <algorithm>
 
-#include "netport.h"
-#include "socket_util.h"
+#include "network/netport.h"
+#include "network/socket_util.h"
 
 NetPort::NetPort(const char *ip, in_port_t port) : _sock_fd(0), _connections(10), _running(true), _watchdog(std::chrono::steady_clock::now()){
     if((_sock_fd = socket_util::create_socket(ip, port, _self, true)) < 0){

@@ -5,8 +5,8 @@
 #include <arpa/inet.h>
 #include <cstring>
 
-#include "socket_util.h"
-#include "connection.h"
+#include "network/socket_util.h"
+#include "network/connection.h"
 
 Connection::Connection(int cfd, sockaddr_in c) : _conn_fd(cfd), _conn_other(c),
 _finished(false), _r_buf_pos(0), _watchdog(std::chrono::steady_clock::now()) {
@@ -22,7 +22,7 @@ Connection::~Connection() {
 }
 
 void Connection::start() {
-    _thread = std::thread([this](){this->run();});
+    _thread = std::thread(&Connection::run, this);
 }
 
 void Connection::join() {
@@ -272,7 +272,7 @@ Object *Connection::clone() const {
 }
 
 bool Connection::equals(const Object* other) const {
-    return this == other;
+    return this == dynamic_cast<const Connection *>(other);
 }
 
 size_t Connection::hash() const {

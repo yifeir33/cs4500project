@@ -1,7 +1,7 @@
 #pragma once
 
-#include "connection.h"
-#include "server.h"
+#include "network/connection.h"
+#include "network/server.h"
 
 
 class ServerConnection : public Connection {

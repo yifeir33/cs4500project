@@ -5,10 +5,10 @@
 #include <thread>
 
 #include "util/object.h"
-#include "schema.h"
-#include "rower.h"
-#include "fielder.h"
-#include "column.h"
+#include "data/schema.h"
+#include "data/rower.h"
+#include "data/fielder.h"
+#include "data/column.h"
 #include "store/kvstore.h"
 
 #define MAX_THREADS    8

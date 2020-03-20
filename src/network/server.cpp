@@ -1,9 +1,9 @@
 #include <thread>
 #include <cstring>
 
-#include "server.h"
-#include "server_connection.h"
-#include "socket_util.h"
+#include "network/server.h"
+#include "network/server_connection.h"
+#include "network/socket_util.h"
 
 
 Server::Server(const char *ip, in_port_t port) : NetPort(ip, port), _clients(10), _passed_update(0), _expected_update(0), _new_update(false) {}

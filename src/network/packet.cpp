@@ -1,6 +1,6 @@
 #include <cstring>
 
-#include "packet.h"
+#include "network/packet.h"
 
 Packet::Packet() : type(0), length(0) {
     memset(value, 0, DATA_MAX);

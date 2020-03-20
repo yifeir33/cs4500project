@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include <cstring>
 
-#include "server_connection.h"
+#include "network/server_connection.h"
 
 ServerConnection::ServerConnection(int cfd, sockaddr_in caddr, Server& s) : Connection(cfd, caddr), _server(s) {}
 

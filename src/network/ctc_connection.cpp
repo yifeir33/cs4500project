@@ -1,7 +1,7 @@
 #include <cstring>
 #include <assert.h>
 
-#include "ctc_connection.h"
+#include "network/ctc_connection.h"
 
 CtCConnection::CtCConnection(int fd, sockaddr_in other, Client& c, bool r) : Connection(fd, other),
 _client(c), _receiver(r) {

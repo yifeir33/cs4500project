@@ -6,7 +6,7 @@
 #include <mutex>
 
 #include "util/object.h"
-#include "connection.h"
+#include "network/connection.h"
 
 #define WATCHDOG_TIMEOUT  60 // seconds
 

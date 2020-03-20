@@ -6,7 +6,7 @@
 #include <netinet/ip.h>
 
 #include "util/object.h"
-#include "packet.h"
+#include "network/packet.h"
 
 #define WATCHDOG_TIMEOUT  60 // seconds
 #define BUFFER_SIZE (2 * PACKET_MAX_SIZE)
@@ -14,7 +14,7 @@
 class Connection : public Object {
 private:
     std::thread _thread;
-    // delete
+    // delete copy constructors
     Connection(const Connection& c) = delete;
     Connection& operator=(const Connection& c) = delete;
 

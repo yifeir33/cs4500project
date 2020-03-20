@@ -3,8 +3,8 @@
 #include <mutex>
 #include <atomic>
 
-#include "netport.h"
-#include "packet.h"
+#include "network/netport.h"
+#include "network/packet.h"
 
 class Server : public NetPort {
 protected:

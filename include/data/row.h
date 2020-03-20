@@ -5,8 +5,8 @@
 #include <variant>
 
 #include "util/object.h"
-#include "schema.h"
-#include "fielder.h"
+#include "data/schema.h"
+#include "data/fielder.h"
 
 /*************************************************************************
  * Row::

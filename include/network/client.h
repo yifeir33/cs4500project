@@ -5,8 +5,8 @@
 #include <arpa/inet.h>
 #include <vector>
 
-#include "netport.h"
-#include "packet.h"
+#include "network/netport.h"
+#include "network/packet.h"
 
 class CtSConnection;
 

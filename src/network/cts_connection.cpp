@@ -3,8 +3,8 @@
 #include <chrono>
 #include <assert.h>
 
-#include "cts_connection.h"
-#include "socket_util.h"
+#include "network/cts_connection.h"
+#include "network/socket_util.h"
 
 CtSConnection::CtSConnection(int fd, Client& c, sockaddr_in server) : Connection(fd, server), _client(c) {
     p("CTS Created").p('\n');

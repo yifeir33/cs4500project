@@ -1,8 +1,8 @@
 #pragma once
 
 #include "util/object.h"
-#include "row.h"
-#include "fielder.h"
+#include "data/row.h"
+#include "data/fielder.h"
 
 /*******************************************************************************
  *  Rower::

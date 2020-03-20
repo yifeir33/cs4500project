@@ -3,10 +3,10 @@
 #include <assert.h>
 #include <cstring>
 
-#include "client.h"
-#include "socket_util.h"
-#include "cts_connection.h"
-#include "ctc_connection.h"
+#include "network/client.h"
+#include "network/socket_util.h"
+#include "network/cts_connection.h"
+#include "network/ctc_connection.h"
 
 Client::Client(const char *client_ip, const char *server_ip, in_port_t port)
     : NetPort(client_ip, 0), _client_update(false) {

@@ -6,7 +6,7 @@
 #include <string>
 
 #include "util/object.h"
-#include "column.h"
+#include "data/column.h"
 
 /*************************************************************************
  * Schema::
