@@ -6,6 +6,7 @@ SRC          := $(TOP_DIR)src
 TESTS        := $(TOP_DIR)tests
 OBJ          := $(TOP_DIR)objs
 BIN          := $(TOP_DIR)bin
+BOAT         := $(TOP_DIR)/boat-a1p1
 
 UTIL         := $(SRC)/util
 NETWORK      := $(SRC)/network
@@ -27,12 +28,12 @@ STORE_OBJS   := $(patsubst $(STORE)/%.cpp, $(OBJ)/%.o, $(STORE_SRCS))
 SRC_OBJS     := $(UTIL_OBJS) $(NETWORK_OBJS) $(DATA_OBJS) $(STORE_OBJS)
 
 CXX          := g++
-CXXFLAGS     := -Wall -Wextra -Wpedantic -g -pthread -std=c++17 -I$(INCLUDE)
+CXXFLAGS     := -Wall -Wextra -Wpedantic -g -pthread -std=c++17 -I$(INCLUDE) -I($BOAT)/include/
 
 .PHONY: all test clean
 
 # Makes main binary (which isn't written right now)
-all: $(SRC_OBJS)
+all: $(SRC_OBJS) $(BOAT)/lib/libsorer.a
 	echo "All Objects Built ;)"
 
 # Makes and executes test binary
@@ -40,8 +41,8 @@ test: $(BIN)/tests
 	$< --success
 
 # Test binary
-$(BIN)/tests: $(SRC_OBJS) $(TEST_OBJS)
-	$(CXX) $(CXXFLAGS) $^ -o $@
+$(BIN)/tests: $(SRC_OBJS) $(TEST_OBJS) $(BOAT)/lib/libsorer.a
+	$(CXX) $(CXXFLAGS) -L$(BOAT)/lib/ -lsorer $^ -o $@
 
 # Util
 $(OBJ)/%.o: $(UTIL)/%.cpp
@@ -59,9 +60,14 @@ $(OBJ)/%.o: $(DATA)/%.cpp
 $(OBJ)/%.o: $(STORE)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Sorer library - This is a submodule
+$(BOAT)/lib/libsorer.a: $(BOAT)/Makefile
+	cd $(BOAT) && $(MAKE) 
+
 # Tests
 $(OBJ)/%.o: $(TESTS)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
 	rm $(OBJ)/*.o $(BIN)/tests
+	cd $(BOAT) && make clean

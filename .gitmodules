@@ -1,0 +1,6 @@
+[submodule "sorer/boat-a1p1"]
+	path = sorer/boat-a1p1
+	url = git@github.com:NeilResnik/boat-a1p1.git
+[submodule "boat-a1p1"]
+	path = boat-a1p1
+	url = git@github.com:NeilResnik/boat-a1p1.git
