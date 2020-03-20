@@ -5,7 +5,7 @@
 #include <vector>
 #include <mutex>
 
-#include "object.h"
+#include "util/object.h"
 #include "connection.h"
 
 #define WATCHDOG_TIMEOUT  60 // seconds

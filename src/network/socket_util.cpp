@@ -7,6 +7,8 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#include "socket_util.h"
+
 namespace socket_util{
     bool get_socket_info(int fd, sockaddr_in& saddr){
         socklen_t size = sizeof(saddr);

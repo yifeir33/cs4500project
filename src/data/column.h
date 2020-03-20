@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 
-#include "object.h"
+#include "util/object.h"
 
 // Forward Declarations for Column
 class IntColumn;

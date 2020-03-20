@@ -4,12 +4,12 @@
 #include <string>
 #include <thread>
 
-#include "object.h"
+#include "util/object.h"
 #include "schema.h"
 #include "rower.h"
 #include "fielder.h"
 #include "column.h"
-#include "kvstore.h"
+#include "store/kvstore.h"
 
 #define MAX_THREADS    8
 #define THREAD_ROWS    5000

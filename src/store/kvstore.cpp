@@ -1,7 +1,7 @@
 #include <functional>
 
 #include "kvstore.h"
-#include "dataframe.h"
+#include "data/dataframe.h"
 
 KVStore::Key::Key(const std::string& n, size_t i) : _name(n), _node_idx(i) {}
 

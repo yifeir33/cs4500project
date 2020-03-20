@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include "object.h"
+#include "util/object.h"
 
 /*****************************************************************************
  * Fielder::

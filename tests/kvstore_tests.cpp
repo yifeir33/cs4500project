@@ -2,8 +2,8 @@
 
 #include "catch.hpp"
 
-#include "dataframe.h"
-#include "kvstore.h"
+#include "data/dataframe.h"
+#include "store/kvstore.h"
 
 SCENARIO("Can construct a KVStore containing a Dataframe constructed from double array"){
     GIVEN("An array of doubles and a KVStore (with key)"){

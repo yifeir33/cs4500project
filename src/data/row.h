@@ -4,7 +4,7 @@
 #include <vector>
 #include <variant>
 
-#include "object.h"
+#include "util/object.h"
 #include "schema.h"
 #include "fielder.h"
 

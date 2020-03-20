@@ -2,9 +2,9 @@
 #include "test_util.h"
 #include "test_rower.h"
 
-#include "dataframe.h"
-#include "schema.h"
-#include "row.h"
+#include "data/dataframe.h"
+#include "data/schema.h"
+#include "data/row.h"
 
 #define ROW_CNT 100000
 

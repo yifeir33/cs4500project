@@ -4,19 +4,19 @@
 #include <random>
 #include <memory>
 
-#include "dataframe.h"
-#include "schema.h"
-#include "row.h"
+#include "data/dataframe.h"
+#include "data/schema.h"
+#include "data/row.h"
 
-#define SEED 102102
+/* #define SEED 102102 */
 
-bool initalized = false;
+/* bool initalized = false; */
 
-void init() {
-    if(initalized) return;
-    srand(SEED);
-    initalized = true;
-}
+/* void init() { */
+/*     if(initalized) return; */
+/*     srand(SEED); */
+/*     initalized = true; */
+/* } */
 
 int generate_int(){
     return rand() % 10000 * (rand() % 2 == 1 ? 1 : -1);
@@ -44,7 +44,7 @@ std::shared_ptr<std::string> generate_string(){
 }
 
 bool generate_large_dataframe(DataFrame& df, size_t nrows){
-    if(!initalized) init();
+    /* if(!initalized) init(); */
     const Schema& scm = df.get_schema();
 
     Row r(scm);

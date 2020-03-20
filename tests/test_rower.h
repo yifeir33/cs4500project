@@ -1,5 +1,5 @@
-#include "rower.h"
-#include "fielder.h"
+#include "data/rower.h"
+#include "data/fielder.h"
 
 class TestSumRower : public Rower {
 private:

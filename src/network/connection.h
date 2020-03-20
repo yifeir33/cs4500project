@@ -5,7 +5,7 @@
 #include <atomic>
 #include <netinet/ip.h>
 
-#include "object.h"
+#include "util/object.h"
 #include "packet.h"
 
 #define WATCHDOG_TIMEOUT  60 // seconds

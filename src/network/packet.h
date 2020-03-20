@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <netinet/ip.h>
 
-#include "object.h"
+#include "util/object.h"
 
 #define DATA_MAX        256
 #define PACKET_MAX_SIZE (1 + 2 + DATA_MAX) // Type + Length + DATA_MAX
