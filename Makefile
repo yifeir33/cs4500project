@@ -31,27 +31,35 @@ CXXFLAGS     := -Wall -Wextra -Wpedantic -g -pthread -std=c++17 -I$(INCLUDE)
 
 .PHONY: all test clean
 
+# Makes main binary (which isn't written right now)
 all: $(SRC_OBJS)
 	echo "All Objects Built ;)"
 
+# Makes and executes test binary
 test: $(BIN)/tests
 	$< --success
 
+# Test binary
 $(BIN)/tests: $(SRC_OBJS) $(TEST_OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
+# Util
 $(OBJ)/%.o: $(UTIL)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Network
 $(OBJ)/%.o: $(NETWORK)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Data
 $(OBJ)/%.o: $(DATA)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Store
 $(OBJ)/%.o: $(STORE)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Tests
 $(OBJ)/%.o: $(TESTS)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
