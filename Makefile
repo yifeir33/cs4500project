@@ -53,7 +53,7 @@ $(BIN):
 
 # Test binary
 $(BIN)/tests: $(SRC_OBJS) $(TEST_OBJS) $(BOAT)/lib/libsorer.a
-	$(CXX) $(CXXFLAGS) -L$(BOAT)/lib/ -lsorer $^ -o $@
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
 # Util
 $(OBJ)/%.o: $(UTIL)/%.cpp
