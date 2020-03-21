@@ -37,16 +37,16 @@ std::shared_ptr<DataFrame> DataFrame::from_array(KVStore& kvs, KVStore::Key k, i
     return df;
 }
 
-DataFrame::DataFrame() : _schema(std::make_shared<Schema>()) {}
+DataFrame::DataFrame() : _schema(std::make_unique<Schema>()) {}
 
-DataFrame::DataFrame(const DataFrame& df) : DataFrame(df._schema) {}
+DataFrame::DataFrame(const DataFrame& df) : DataFrame(std::make_unique<Schema>(*df._schema)) {}
 
 /** Create a data frame from a schema and columns. All columns are created
 * empty. */
-DataFrame::DataFrame(std::shared_ptr<Schema> schema) : _schema(schema), _columns() {
-    for(size_t i = 0; i < schema->width(); ++i){
-        auto col = _get_col_from_type(schema->col_type(i));
-        assert(col);
+DataFrame::DataFrame(std::unique_ptr<Schema> schema) : _schema(std::move(schema)), _columns() {
+    for(size_t i = 0; i < _schema->width(); ++i){
+        auto col = _get_col_from_type(_schema->col_type(i));
+        exit_if_not(!!col, "Failed to create column");
         _columns.push_back(std::move(col));
     }
 }
@@ -85,20 +85,32 @@ void DataFrame::add_column(std::unique_ptr<Column> col, std::shared_ptr<std::str
 
 /** Return the value at the given column and row. Accessing rows or
 *  columns out of bounds, or request the wrong type is undefined.*/
-int DataFrame::get_int(size_t col, size_t row) const {
-    return _columns[col]->as_int()->get(row);
+std::optional<int> DataFrame::get_int(size_t col, size_t row) const {
+    exit_if_not(col < _columns.size(), "Col index out of range.");
+    auto column = _columns[col]->as_int();
+    exit_if_not(column, "Column is not of type integer.");
+    return column->get(row);
 }
 
-bool DataFrame::get_bool(size_t col, size_t row) const {
-    return _columns[col]->as_bool()->get(row);
+std::optional<bool> DataFrame::get_bool(size_t col, size_t row) const {
+    exit_if_not(col < _columns.size(), "Col index out of range.");
+    auto column = _columns[col]->as_bool();
+    exit_if_not(column, "Column is not of type bool.");
+    return column->get(row);
 }
 
-double DataFrame::get_double(size_t col, size_t row) const {
-    return _columns[col]->as_float()->get(row);
+std::optional<double> DataFrame::get_double(size_t col, size_t row) const {
+    exit_if_not(col < _columns.size(), "Col index out of range.");
+    auto column = _columns[col]->as_float();
+    exit_if_not(column, "Column is not of type float.");
+    return column->get(row);
 }
 
 std::weak_ptr<std::string> DataFrame::get_string(size_t col, size_t row) const {
-    return _columns[col]->as_string()->get(row);
+    exit_if_not(col < _columns.size(), "Col index out of range.");
+    auto column = _columns[col]->as_string();
+    exit_if_not(column, "Column is not of type string.");
+    return column->get(row);
 }
 
 /** Return the offset of the given column name or -1 if no such col. */
@@ -114,15 +126,15 @@ int DataFrame::get_row(std::string& row) const {
 /** Set the value at the given column and row to the given value.
 * If the column is not  of the right type or the indices are out of
 * bound, the result is undefined. */
-void DataFrame::set(size_t col, size_t row, int val) {
+void DataFrame::set(size_t col, size_t row, std::optional<int> val) {
     _columns[col]->as_int()->set(row, val);
 }
 
-void DataFrame::set(size_t col, size_t row, bool val) {
+void DataFrame::set(size_t col, size_t row, std::optional<bool> val) {
     _columns[col]->as_bool()->set(row, val);
 }
 
-void DataFrame::set(size_t col, size_t row, double val) {
+void DataFrame::set(size_t col, size_t row, std::optional<double> val) {
     _columns[col]->as_float()->set(row, val);
 }
 
@@ -350,20 +362,31 @@ Object* DataFrame::PrintRower::clone() const {
 // Print Fielder
 /* void DataFrame::PrintRower::PrintFielder::start(size_t r){} */
 /** Called for fields of the argument's type with the value of the field. */
-void DataFrame::PrintRower::PrintFielder::accept(bool b){
-    p('<').p(b).p('>');
+void DataFrame::PrintRower::PrintFielder::accept(std::optional<bool> b){
+    p('<');
+    if(b) p(*b);
+    p('>');
 }
 
-void DataFrame::PrintRower::PrintFielder::accept(double f){
-    p('<').p(f).p('>');
+void DataFrame::PrintRower::PrintFielder::accept(std::optional<double> f){
+    p('<');
+    if(f) p(*f);
+    p('>');
 }
 
-void DataFrame::PrintRower::PrintFielder::accept(int i){
-    p('<').p(i).p('>');
+void DataFrame::PrintRower::PrintFielder::accept(std::optional<int> i){
+    p('<');
+    if(i) p(*i);
+    p('>');
 }
 
 void DataFrame::PrintRower::PrintFielder::accept(std::weak_ptr<std::string> s){
-    p('<').p(s.lock()->c_str()).p('>');
+    p('<');
+    auto s_val = s.lock();
+    if(s_val) {
+        p(s_val->c_str());
+    }
+    p('>');
 }
 
 Object* DataFrame::PrintRower::PrintFielder::clone() const {

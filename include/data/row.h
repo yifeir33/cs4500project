@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <variant>
+#include <optional>
 
 #include "util/object.h"
 #include "data/schema.h"
@@ -18,7 +19,7 @@
  */
 class Row : public Object {
 private:
-    typedef std::variant<int, double, bool, std::shared_ptr<std::string>> schema_variant;
+    using schema_variant = std::variant<std::optional<int>, std::optional<double>, std::optional<bool>, std::shared_ptr<std::string>>;
 
     size_t _width;
     char *_types;
@@ -34,11 +35,11 @@ public:
 
     /** Setters: set the given column with the given value. Setting a column with
     * a value of the wrong type is undefined. */
-    void set(size_t col, int val);
+    void set(size_t col, std::optional<int> val);
 
-    void set(size_t col, double val);
+    void set(size_t col, std::optional<double> val);
 
-    void set(size_t col, bool val);
+    void set(size_t col, std::optional<bool> val);
 
     /** The string is external. */
     void set(size_t col, std::shared_ptr<std::string> val);
@@ -51,11 +52,11 @@ public:
 
     /** Getters: get the value at the given column. If the column is not
     * of the requested type, the result is undefined. */
-    int get_int(size_t col) const;
+    std::optional<int> get_int(size_t col) const;
 
-    bool get_bool(size_t col) const;
+    std::optional<bool> get_bool(size_t col) const;
 
-    double get_double(size_t col) const;
+    std::optional<double> get_double(size_t col) const;
 
     std::shared_ptr<std::string> get_string(size_t col) const;
 

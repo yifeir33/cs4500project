@@ -11,10 +11,9 @@ StringColumn* Column::as_string() { return nullptr; }
 
 /** Type appropriate.push_back_back methods. Calling the wrong method is
 * undefined behavior. **/
-
-void Column::push_back([[maybe_unused]] int val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
-void Column::push_back([[maybe_unused]] bool val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
-void Column::push_back([[maybe_unused]] double val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
+void Column::push_back([[maybe_unused]] std::optional<int> val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
+void Column::push_back([[maybe_unused]] std::optional<bool> val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
+void Column::push_back([[maybe_unused]] std::optional<double> val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
 void Column::push_back([[maybe_unused]] std::shared_ptr<std::string> val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
 
 size_t Column::hash() const {
@@ -32,20 +31,21 @@ IntColumn::IntColumn(int n, ...) : _data() {
     va_end(args);
 }
 
-void IntColumn::push_back(int val) {
+void IntColumn::push_back(std::optional<int> val) {
   _data.push_back(val);
 }
 
-int IntColumn::get(size_t idx) const {
+std::optional<int> IntColumn::get(size_t idx) const {
   return _data[idx];
 }
 
 IntColumn* IntColumn::as_int() {
   return this;
 }
+
 /** Set value at idx. An out of bound idx is undefined.  */
-int IntColumn::set(size_t idx, int val) {
-    int old = _data[idx];
+std::optional<int> IntColumn::set(size_t idx, std::optional<int> val) {
+    auto old = _data[idx];
     _data[idx] = val;
     return old;
 }
@@ -70,7 +70,7 @@ bool IntColumn::equals(const Object *other) const {
 size_t IntColumn::hash() const {
     size_t hash = Column::hash() + 5;
     for(size_t i = 0; i < _data.size(); ++i) {
-        hash += _data[i] * i;
+        hash += (_data[i] ? *_data[i] : 1) * i;
     }
     return hash;
 }
@@ -90,11 +90,11 @@ FloatColumn::FloatColumn(int n, ...) : _data() {
     va_end(args);
 }
 
-void FloatColumn::push_back(double val) {
+void FloatColumn::push_back(std::optional<double> val) {
   _data.push_back(val);
 }
 
-double FloatColumn::get(size_t idx) const {
+std::optional<double> FloatColumn::get(size_t idx) const {
   return _data[idx];
 }
 
@@ -102,8 +102,8 @@ FloatColumn* FloatColumn::as_float() {
   return this;
 }
 /** Set value at idx. An out of bound idx is undefined.  */
-double FloatColumn::set(size_t idx, double val) {
-    double old = _data[idx];
+std::optional<double> FloatColumn::set(size_t idx, std::optional<double> val) {
+    auto old = _data[idx];
     _data[idx] = val;
     return old;
 }
@@ -128,7 +128,7 @@ bool FloatColumn::equals(const Object *other) const {
 size_t FloatColumn::hash() const {
     size_t hash = Column::hash() + 5;
     for(size_t i = 0; i < _data.size(); ++i) {
-        hash += _data[i] * i;
+        hash += (_data[i] ? *_data[i] : 1) * i;
     }
     return hash;
 }
@@ -148,11 +148,11 @@ BoolColumn::BoolColumn(int n, ...) : _data() {
     va_end(args);
 }
 
-void BoolColumn::push_back(bool val) {
+void BoolColumn::push_back(std::optional<bool> val) {
   _data.push_back(val);
 }
 
-bool BoolColumn::get(size_t idx) const {
+std::optional<bool> BoolColumn::get(size_t idx) const {
   return _data[idx];
 }
 
@@ -160,8 +160,8 @@ BoolColumn* BoolColumn::as_bool() {
   return this;
 }
 /** Set value at idx. An out of bound idx is undefined.  */
-bool BoolColumn::set(size_t idx, bool val) {
-    bool old = _data[idx];
+std::optional<bool> BoolColumn::set(size_t idx, std::optional<bool> val) {
+    auto old = _data[idx];
     _data[idx] = val;
     return old;
 }
@@ -186,7 +186,7 @@ bool BoolColumn::equals(const Object *other) const {
 size_t BoolColumn::hash() const {
     size_t hash = Column::hash() + 5;
     for(size_t i = 0; i < _data.size(); ++i) {
-        hash += _data[i] * i;
+        hash += (_data[i] ? *_data[i] + 2 : 1) * i;
     }
     return hash;
 }

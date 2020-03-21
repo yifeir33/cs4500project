@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <optional>
 
 #include "util/object.h"
 
@@ -33,9 +34,9 @@ public:
 
     /** Type appropriate push_back methods. Calling the wrong method is
     * undefined behavior. **/
-    virtual void push_back(int val);
-    virtual void push_back(bool val);
-    virtual void push_back(double val);
+    virtual void push_back(std::optional<int> val);
+    virtual void push_back(std::optional<bool> val);
+    virtual void push_back(std::optional<double> val);
     virtual void push_back(std::shared_ptr<std::string> val);
 
     /** Returns the number of elements in the column. */
@@ -53,19 +54,19 @@ public:
  */
 class IntColumn : public Column {
 private:
-    std::vector<int> _data;
+    std::vector<std::optional<int>> _data;
 
 public:
     IntColumn() = default;
     IntColumn(int n, ...);
 
-    void push_back(int val) override;
+    void push_back(std::optional<int> val) override;
 
-    int get(size_t idx) const;
+    std::optional<int> get(size_t idx) const;
 
     IntColumn* as_int() override;
     /** Set value at idx. An out of bound idx is undefined.  */
-    int set(size_t idx, int val);
+    std::optional<int> set(size_t idx, std::optional<int> val);
 
     size_t size() const override;
 
@@ -84,19 +85,19 @@ public:
  */
 class FloatColumn : public Column {
 private:
-    std::vector<double> _data;
+    std::vector<std::optional<double>> _data;
 
 public:
     FloatColumn() = default;
     FloatColumn(int n, ...);
 
-    void push_back(double val) override;
+    void push_back(std::optional<double> val) override;
 
-    double get(size_t idx) const;
+    std::optional<double> get(size_t idx) const;
 
     FloatColumn* as_float() override;
     /** Set value at idx. An out of bound idx is undefined.  */
-    double set(size_t idx, double val);
+    std::optional<double> set(size_t idx, std::optional<double> val);
 
     size_t size() const override;
 
@@ -115,19 +116,19 @@ public:
  */
 class BoolColumn : public Column {
 private:
-    std::vector<bool> _data;
+    std::vector<std::optional<bool>> _data;
 
 public:
     BoolColumn() = default;
     BoolColumn(int n, ...);
 
-    void push_back(bool val) override;
+    void push_back(std::optional<bool> val) override;
 
-    bool get(size_t idx) const;
+    std::optional<bool> get(size_t idx) const;
 
     BoolColumn* as_bool() override;
     /** Set value at idx. An out of bound idx is undefined.  */
-    bool set(size_t idx, bool val);
+    std::optional<bool> set(size_t idx, std::optional<bool> val);
 
     size_t size() const override;
 

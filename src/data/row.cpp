@@ -12,19 +12,19 @@ Row::~Row() {
 
 /** Setters: set the given column with the given value. Setting a column with
 * a value of the wrong type is undefined. */
-void Row::set(size_t col, int val) {
+void Row::set(size_t col, std::optional<int> val) {
     assert(col < _width);
     assert(_types[col] == 'I');
     _values[col] = val;
 }
 
-void Row::set(size_t col, double val) {
+void Row::set(size_t col, std::optional<double> val) {
     assert(col < _width);
     assert(_types[col] == 'F');
     _values[col] = val;
 }
 
-void Row::set(size_t col, bool val) {
+void Row::set(size_t col, std::optional<bool> val) {
     assert(col < _width);
     assert(_types[col] == 'B');
     _values[col] = val;
@@ -48,16 +48,16 @@ size_t Row::get_index() const {
 
 /** Getters: get the value at the given column. If the column is not
 * of the requested type, the result is undefined. */
-int Row::get_int(size_t col) const {
-    return std::get<int>(_values[col]);
+std::optional<int> Row::get_int(size_t col) const {
+    return std::get<std::optional<int>>(_values[col]);
 }
 
-bool Row::get_bool(size_t col) const {
-    return std::get<bool>(_values[col]);
+std::optional<bool> Row::get_bool(size_t col) const {
+    return std::get<std::optional<bool>>(_values[col]);
 }
 
-double Row::get_double(size_t col) const {
-    return std::get<double>(_values[col]);
+std::optional<double> Row::get_double(size_t col) const {
+    return std::get<std::optional<double>>(_values[col]);
 }
 
 std::shared_ptr<std::string> Row::get_string(size_t col) const {
@@ -143,20 +143,33 @@ size_t Row::hash() const {
         hash += _types[i] * i;
         switch(_types[i]){
             case 'I':
-                hash += this->get_int(i) * i;
-                break;
+                {
+                    auto val = this->get_int(i);
+                    hash += (val ? *val : 1) * i;
+                    break;
+                }
             case 'F':
-                hash += this->get_double(i) * i;
-                break;
+                {
+                    auto val = this->get_double(i);
+                    hash += (val ? *val : 1) * i;
+                    break;
+                }
             case 'B':
-                hash += this->get_bool(i) * i;
-                break;
+                {
+                    auto val = this->get_bool(i);
+                    hash += (val ? *val + 2 : 1) * i;
+                    break;
+                }
             case 'S':
                 {
                     auto s = this->get_string(i);
-                    hash += s->length();
-                    for(size_t i = 0; i < s->length(); ++i){
-                        hash += s->at(i) * i;
+                    if(s) {
+                        hash += s->length();
+                        for(size_t i = 0; i < s->length(); ++i){
+                            hash += s->at(i) * i;
+                        }
+                    } else {
+                        hash += 1;
                     }
                     break;
                 }

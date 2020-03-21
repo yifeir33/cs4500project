@@ -3,6 +3,7 @@
 #include <string>
 #include <random>
 #include <memory>
+#include <optional>
 
 #include "data/dataframe.h"
 #include "data/schema.h"
@@ -18,16 +19,16 @@
 /*     initalized = true; */
 /* } */
 
-int generate_int(){
-    return rand() % 10000 * (rand() % 2 == 1 ? 1 : -1);
+std::optional<int> generate_int(){
+    return std::optional<int>(rand() % 10000 * (rand() % 2 == 1 ? 1 : -1));
 }
 
-bool generate_bool(){
-    return rand() % 2;
+std::optional<bool> generate_bool(){
+    return std::optional<bool>(rand() % 2);
 }
 
-float generate_float(){
-    return generate_int() * 1.0 / ((rand() % 5) * 1.0);
+std::optional<double> generate_float(){
+    return std::optional<double>((*generate_int() * 1.0) / ((rand() % 5) * 1.0));
 }
 
 std::shared_ptr<std::string> generate_string(){

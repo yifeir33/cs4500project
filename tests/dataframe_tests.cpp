@@ -10,7 +10,7 @@
 
 SCENARIO("Can construct and use dataframe"){
     GIVEN("A Constructed Schema") {
-        auto s = std::make_shared<Schema>("IISSBBFF");
+        auto s = std::make_unique<Schema>("IISSBBFF");
         REQUIRE(s->width() == 8);
 
         DataFrame df(std::move(s));

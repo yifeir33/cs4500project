@@ -17,7 +17,7 @@ SCENARIO("Can construct a KVStore containing a Dataframe constructed from double
             auto df = DataFrame::from_array(kvs, k, vals, SZ);
             REQUIRE(df->get_double(0, 1) == 1);
             auto df2 = kvs.get(k);
-            for(size_t i = 0; i < SZ; ++i) sum -= df2->get_double(0, i);
+            for(size_t i = 0; i < SZ; ++i) sum -= *df2->get_double(0, i);
             THEN("The constructed dataframe is in the KVStore"){
                 REQUIRE(sum == 0);
             }
@@ -37,7 +37,7 @@ SCENARIO("Can construct a KVStore containing a Dataframe constructed from intege
             auto df = DataFrame::from_array(kvs, k, vals, SZ);
             REQUIRE(df->get_int(0, 1) == 1);
             auto df2 = kvs.get(k);
-            for(size_t i = 0; i < SZ; ++i) sum -= df2->get_int(0, i);
+            for(size_t i = 0; i < SZ; ++i) sum -= *df2->get_int(0, i);
             THEN("The constructed dataframe is in the KVStore"){
                 REQUIRE(sum == 0);
             }
@@ -57,7 +57,7 @@ SCENARIO("Can construct a KVStore containing a Dataframe constructed from boolea
             auto df = DataFrame::from_array(kvs, k, vals, SZ);
             REQUIRE(df->get_bool(0, 1) == true);
             auto df2 = kvs.get(k);
-            for(size_t i = 0; i < SZ; ++i) sum -= df2->get_bool(0, i);
+            for(size_t i = 0; i < SZ; ++i) sum -= *df2->get_bool(0, i);
             THEN("The constructed dataframe is in the KVStore"){
                 REQUIRE(sum == 0);
             }

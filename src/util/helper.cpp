@@ -2,6 +2,7 @@
 #include <cstring>
 #include <iostream>
 #include <iomanip>
+#include <cassert>
 
 #include "util/helper.h"
 
@@ -38,14 +39,14 @@ const Sys& Sys::pln(const char* c) const { std::cout << c << std::endl;  return 
 void Sys::exit_if_not(bool b, const char* c) const {
     if (b) return;
     p("Exit message: ").pln(c);
-    exit(-1);
+    assert(false);
 }
 
 // Definitely fail
 //  void FAIL() {
 void Sys::myfail() const{
     pln("Failing");
-    exit(1);
+    assert(false);
 }
 
 // Some utilities for lightweight testing

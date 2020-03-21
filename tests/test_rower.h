@@ -14,21 +14,23 @@ private:
             return _sum;
         }
 
-        void accept(bool b) override {
-            _sum += b;
+        void accept(std::optional<bool> b) override {
+            if(b) _sum += *b;
         }
 
-        void accept(double d) override {
-            _sum += d;
+        void accept(std::optional<double> d) override {
+            if(d) _sum += *d;
         }
 
-        void accept(int i) override {
-            _sum += i;
+        void accept(std::optional<int> i) override {
+            if(i) _sum += *i;
         }
 
         void accept(std::weak_ptr<std::string> s) override {
             auto ss = s.lock();
-            _sum += ss->length();
+            if(ss) {
+                _sum += ss->length();
+            }
         }
 
         size_t hash() const override {

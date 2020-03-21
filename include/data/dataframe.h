@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <optional>
 
 #include "util/object.h"
 #include "data/schema.h"
@@ -23,7 +24,7 @@
  */
 class DataFrame : public Object {
 private:
-    std::shared_ptr<Schema> _schema;
+    std::unique_ptr<Schema> _schema;
     std::vector<std::unique_ptr<Column>> _columns;
 
     std::unique_ptr<Column> _get_col_from_type(char type) const;
@@ -46,11 +47,11 @@ private:
         class PrintFielder : public Fielder {
         public:
             /** Called for fields of the argument's type with the value of the field. */
-            void accept(bool b) override;
+            void accept(std::optional<bool> b) override;
 
-            void accept(double f) override;
+            void accept(std::optional<double> f) override;
 
-            void accept(int i) override;
+            void accept(std::optional<int> i) override;
 
             void accept(std::weak_ptr<std::string> s) override;
 
@@ -93,7 +94,7 @@ public:
 
     /** Create a data frame from a schema and columns. All columns are created
     * empty. */
-    DataFrame(std::shared_ptr<Schema> schema);
+    DataFrame(std::unique_ptr<Schema> schema);
 
     virtual ~DataFrame();
 
@@ -108,11 +109,11 @@ public:
 
     /** Return the value at the given column and row. Accessing rows or
     *  columns out of bounds, or request the wrong type is undefined.*/
-    int get_int(size_t col, size_t row) const;
+    std::optional<int> get_int(size_t col, size_t row) const;
 
-    bool get_bool(size_t col, size_t row) const;
+    std::optional<bool> get_bool(size_t col, size_t row) const;
 
-    double get_double(size_t col, size_t row) const;
+    std::optional<double> get_double(size_t col, size_t row) const;
 
     std::weak_ptr<std::string> get_string(size_t col, size_t row) const;
 
@@ -125,11 +126,11 @@ public:
     /** Set the value at the given column and row to the given value.
     * If the column is not  of the right type or the indices are out of
     * bound, the result is undefined. */
-    void set(size_t col, size_t row, int val);
+    void set(size_t col, size_t row, std::optional<int> val);
 
-    void set(size_t col, size_t row, bool val);
+    void set(size_t col, size_t row, std::optional<bool> val);
 
-    void set(size_t col, size_t row, double val);
+    void set(size_t col, size_t row, std::optional<double> val);
 
     void set(size_t col, size_t row, std::shared_ptr<std::string> val);
 
