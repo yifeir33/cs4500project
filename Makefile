@@ -33,15 +33,23 @@ SRC_OBJS     := $(UTIL_OBJS) $(NETWORK_OBJS) $(DATA_OBJS) $(STORE_OBJS) $(ADAPTE
 CXX          := g++
 CXXFLAGS     := -Wall -Wextra -Wpedantic -g -pthread -std=c++17 -I$(INCLUDE) -I$(BOAT)/include/
 
-.PHONY: all test clean
+.PHONY: all test clean directories
 
 # Makes main binary (which isn't written right now)
-all: $(SRC_OBJS) $(BOAT)/lib/libsorer.a
+all: directories $(SRC_OBJS) $(BOAT)/lib/libsorer.a
 	echo "All Objects Built ;)"
 
 # Makes and executes test binary
-test: $(BIN)/tests
-	$< --success
+test: directories $(BIN)/tests
+	$(BIN)/tests --success
+
+directories: $(OBJ) $(BIN)
+
+$(OBJ):
+	mkdir -p $@
+
+$(BIN):
+	mkdir -p $@
 
 # Test binary
 $(BIN)/tests: $(SRC_OBJS) $(TEST_OBJS) $(BOAT)/lib/libsorer.a
