@@ -207,8 +207,8 @@ size_t DataFrame::ncols() const {
 
 /** Visit rows in order */
 void DataFrame::map(Rower& r) const {
+    Row row(*_schema);
     for(size_t i = 0; i < this->nrows(); ++i) {
-        Row row(*_schema);
         this->fill_row(i, row);
         r.accept(row);
     }

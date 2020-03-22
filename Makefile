@@ -76,8 +76,11 @@ $(OBJ)/%.o: $(ADAPTER)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Sorer library - This is a submodule
-$(BOAT)/lib/libsorer.a: $(BOAT)/Makefile
-	cd $(BOAT) && $(MAKE) 
+$(BOAT)/lib/libsorer.a: $(BOAT)/Makefile FORCE
+	$(MAKE) -C $(BOAT)
+
+# This forces it to always try to build the submodule
+FORCE: ;
 
 # Tests
 $(OBJ)/%.o: $(TESTS)/%.cpp

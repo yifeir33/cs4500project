@@ -16,7 +16,7 @@ SCENARIO("Can use Sorer library to construct dataframe"){
             REQUIRE(df->get_schema().col_type(2) == 'S');
 
             REQUIRE(df->ncols() == 3);
-            /* REQUIRE(df->nrows() == 3); */
+            REQUIRE(df->nrows() == 3);
 
             REQUIRE((df->get_bool(0, 0).has_value() && *(df->get_bool(0, 0)) == false));
             REQUIRE((df->get_int(1, 0).has_value() && *(df->get_int(1, 0)) == 23));

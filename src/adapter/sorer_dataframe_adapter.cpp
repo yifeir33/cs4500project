@@ -104,10 +104,10 @@ namespace SorerDataframeAdapter {
 
         Row row(df->get_schema());
         size_t r = 0;
-        while(parse_and_fill_row(parser, r, row)){
+        while(parse_and_fill_row(parser, r++, row)){
             df->add_row(row);
-            ++r;
         }
+        df->print();
         return df;
     }
 }

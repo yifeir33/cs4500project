@@ -79,7 +79,7 @@ char Row::col_type(size_t idx) const {
 * index of the row in the dataframe.
 * Calling this method before the row's fields have been set is undefined. */
 void Row::visit(size_t idx, Fielder& f) const {
-    assert(idx = _index);
+    assert(idx == _index);
 
     for(size_t i = 0; i < _width; ++i) {
         switch(_types[i]){
