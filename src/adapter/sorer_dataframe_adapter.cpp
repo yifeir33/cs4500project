@@ -107,7 +107,6 @@ namespace SorerDataframeAdapter {
         while(parse_and_fill_row(parser, r++, row)){
             df->add_row(row);
         }
-        df->print();
         return df;
     }
 }
