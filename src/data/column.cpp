@@ -245,11 +245,15 @@ size_t StringColumn::hash() const {
     size_t hash = Column::hash() + 5;
     for(size_t i = 0; i < _data.size(); ++i) {
         auto str = _data[i];
-        size_t inner_hash = str->length() * i;
-        for(size_t j = 0; j < str->length(); ++j){
-            inner_hash += str->at(j) * j;
+        if(str) {
+            size_t inner_hash = str->length() * i;
+            for(size_t j = 0; j < str->length(); ++j){
+                inner_hash += str->at(j) * j;
+            }
+            hash += inner_hash;
+        } else {
+            hash += i;
         }
-        hash += inner_hash;
     }
     return hash;
 }

@@ -36,7 +36,7 @@ namespace SorerDataframeAdapter {
             if(val) {
                 return std::optional<int>(std::stoi(*val));
             }
-            return std::optional<int>();
+            return std::nullopt;
         }
 
         std::optional<bool> parse_bool(SoRParser& parser, size_t col, size_t row) {
@@ -44,7 +44,7 @@ namespace SorerDataframeAdapter {
             if(val) {
                 return std::optional<bool>(std::stoi(*val));
             }
-            return std::optional<bool>();
+            return std::nullopt;
         }
 
         std::optional<double> parse_float(SoRParser& parser, size_t col, size_t row) {
@@ -52,7 +52,7 @@ namespace SorerDataframeAdapter {
             if(val) {
                 return std::optional<double>(std::stod(*val));
             }
-            return std::optional<double>();
+            return std::nullopt;
         }
 
         std::optional<std::string> parse_string(SoRParser& parser, size_t col, size_t row) {
