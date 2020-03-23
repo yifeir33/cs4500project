@@ -31,7 +31,7 @@ std::optional<double> generate_float(){
     return std::optional<double>((*generate_int() * 1.0) / ((rand() % 5) * 1.0));
 }
 
-std::shared_ptr<std::string> generate_string(){
+std::optional<std::string> generate_string(){
     char buffer[11]{};
     size_t length = rand() % 10;
     size_t i = 0;
@@ -41,7 +41,7 @@ std::shared_ptr<std::string> generate_string(){
         ++i;
     }
     buffer[length] = '\0';
-    return std::make_shared<std::string>(buffer);
+    return std::optional<std::string>(buffer);
 }
 
 bool generate_large_dataframe(DataFrame& df, size_t nrows){

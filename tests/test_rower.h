@@ -26,10 +26,9 @@ private:
             if(i) _sum += *i;
         }
 
-        void accept(std::weak_ptr<std::string> s) override {
-            auto ss = s.lock();
-            if(ss) {
-                _sum += ss->length();
+        void accept(std::optional<std::string> s) override {
+            if(s) {
+                _sum += s->length();
             }
         }
 

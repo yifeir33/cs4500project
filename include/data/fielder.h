@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <string>
 #include <optional>
 
@@ -20,7 +19,7 @@ public:
     virtual void accept(std::optional<bool> b);
     virtual void accept(std::optional<double> d);
     virtual void accept(std::optional<int> i);
-    virtual void accept(std::weak_ptr<std::string> s);
+    virtual void accept(std::optional<std::string> s);
 
     /** Called when all fields have been seen. */
     virtual void done();

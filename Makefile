@@ -33,7 +33,7 @@ SRC_OBJS     := $(UTIL_OBJS) $(NETWORK_OBJS) $(DATA_OBJS) $(STORE_OBJS) $(ADAPTE
 CXX          := g++
 CXXFLAGS     := -Wall -Wextra -Wpedantic -g -pthread -std=c++17 -I$(INCLUDE) -I$(BOAT)/include/
 
-.PHONY: all test clean directories
+.PHONY: all test clean directories valgrind
 
 # Makes main binary (which isn't written right now)
 all: directories $(SRC_OBJS) $(BOAT)/lib/libsorer.a
@@ -42,6 +42,9 @@ all: directories $(SRC_OBJS) $(BOAT)/lib/libsorer.a
 # Makes and executes test binary
 test: directories $(BIN)/tests
 	$(BIN)/tests --success
+
+valgrind: directories $(BIN)/tests
+	valgrind --leak-check=full $(BIN)/tests
 
 directories: $(OBJ) $(BIN)
 
@@ -88,4 +91,4 @@ $(OBJ)/%.o: $(TESTS)/%.cpp
 
 clean:
 	rm $(OBJ)/*.o $(BIN)/tests
-	cd $(BOAT) && make clean
+	$(MAKE) -C $(BOAT) clean

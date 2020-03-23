@@ -8,7 +8,7 @@ std::shared_ptr<DataFrame> DataFrame::from_array(KVStore& kvs, KVStore::Key k, b
     for(size_t i = 0; i < arr_len; ++i) {
         col->push_back(arr[i]);
     }
-    df->add_column(std::move(col), std::shared_ptr<std::string>(nullptr));
+    df->add_column(std::move(col));
     kvs.set(k, df);
     return df;
 }
@@ -20,7 +20,7 @@ std::shared_ptr<DataFrame> DataFrame::from_array(KVStore& kvs, KVStore::Key k, d
     for(size_t i = 0; i < arr_len; ++i) {
         col->push_back(arr[i]);
     }
-    df->add_column(std::move(col), std::shared_ptr<std::string>(nullptr));
+    df->add_column(std::move(col));
     kvs.set(k, df);
     return df;
 }
@@ -32,7 +32,7 @@ std::shared_ptr<DataFrame> DataFrame::from_array(KVStore& kvs, KVStore::Key k, i
     for(size_t i = 0; i < arr_len; ++i) {
         col->push_back(arr[i]);
     }
-    df->add_column(std::move(col), std::shared_ptr<std::string>(nullptr));
+    df->add_column(std::move(col));
     kvs.set(k, df);
     return df;
 }
@@ -78,7 +78,7 @@ const Schema& DataFrame::get_schema() const {
 /** Adds a column this dataframe, updates the schema, the new column
 * is external, and appears as the last column of the dataframe, the
 * name is optional and external. A nullptr colum is undefined. */
-void DataFrame::add_column(std::unique_ptr<Column> col, std::shared_ptr<std::string> name){
+void DataFrame::add_column(std::unique_ptr<Column> col, std::optional<std::string> name){
     _schema->add_column(col->get_type(), name);
     _columns.push_back(std::move(col));
 }
@@ -106,7 +106,7 @@ std::optional<double> DataFrame::get_double(size_t col, size_t row) const {
     return column->get(row);
 }
 
-std::weak_ptr<std::string> DataFrame::get_string(size_t col, size_t row) const {
+std::optional<std::string> DataFrame::get_string(size_t col, size_t row) const {
     exit_if_not(col < _columns.size(), "Col index out of range.");
     auto column = _columns[col]->as_string();
     exit_if_not(column, "Column is not of type string.");
@@ -138,7 +138,7 @@ void DataFrame::set(size_t col, size_t row, std::optional<double> val) {
     _columns[col]->as_float()->set(row, val);
 }
 
-void DataFrame::set(size_t col, size_t row, std::shared_ptr<std::string> val) {
+void DataFrame::set(size_t col, size_t row, std::optional<std::string> val) {
     _columns[col]->as_string()->set(row, val);
 }
 
@@ -160,7 +160,7 @@ void DataFrame::fill_row(size_t idx, Row& row) const {
                 row.set(c, this->get_bool(c, idx));
                 break;
             case 'S':
-                row.set(c, this->get_string(c, idx).lock());
+                row.set(c, this->get_string(c, idx));
                 break;
             default:
                 assert(false); // unreachable
@@ -380,11 +380,10 @@ void DataFrame::PrintRower::PrintFielder::accept(std::optional<int> i){
     p('>');
 }
 
-void DataFrame::PrintRower::PrintFielder::accept(std::weak_ptr<std::string> s){
+void DataFrame::PrintRower::PrintFielder::accept(std::optional<std::string> s){
     p('<');
-    auto s_val = s.lock();
-    if(s_val) {
-        p(s_val->c_str());
+    if(s) {
+        p(s->c_str());
     }
     p('>');
 }

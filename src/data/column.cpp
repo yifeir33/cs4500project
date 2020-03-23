@@ -14,7 +14,7 @@ StringColumn* Column::as_string() { return nullptr; }
 void Column::push_back([[maybe_unused]] std::optional<int> val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
 void Column::push_back([[maybe_unused]] std::optional<bool> val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
 void Column::push_back([[maybe_unused]] std::optional<double> val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
-void Column::push_back([[maybe_unused]] std::shared_ptr<std::string> val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
+void Column::push_back([[maybe_unused]] std::optional<std::string> val) { exit_if_not(false, "Wrong.push_back back method called on column"); }
 
 size_t Column::hash() const {
     return 500;
@@ -201,16 +201,16 @@ StringColumn::StringColumn(int n, ...) : _data() {
     va_start(args, n);
 
     for(int i = 0; i < n; ++i) {
-        _data.push_back(std::make_shared<std::string>(va_arg(args, char*)));
+        _data.push_back(std::optional<std::string>(va_arg(args, char*)));
     }
     va_end(args);
 }
 
-void StringColumn::push_back(std::shared_ptr<std::string> val) {
+void StringColumn::push_back(std::optional<std::string> val) {
   _data.push_back(val);
 }
 
-std::weak_ptr<std::string> StringColumn::get(size_t idx) {
+std::optional<std::string> StringColumn::get(size_t idx) {
   return _data[idx];
 }
 
@@ -218,7 +218,7 @@ StringColumn* StringColumn::as_string() {
   return this;
 }
 /** Set value at idx. An out of bound idx is undefined.  */
-std::shared_ptr<std::string> StringColumn::set(size_t idx, std::shared_ptr<std::string> val) {
+std::optional<std::string> StringColumn::set(size_t idx, std::optional<std::string> val) {
     auto old = _data[idx];
     _data[idx] = val;
     return old;

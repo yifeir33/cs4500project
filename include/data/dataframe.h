@@ -53,7 +53,7 @@ private:
 
             void accept(std::optional<int> i) override;
 
-            void accept(std::weak_ptr<std::string> s) override;
+            void accept(std::optional<std::string> s) override;
 
             /** Called when all fields have been seen. */
             void done() override;
@@ -105,7 +105,7 @@ public:
     /** Adds a column this dataframe, updates the schema, the new column
     * is external, and appears as the last column of the dataframe, the
     * name is optional and external. A nullptr colum is undefined. */
-    void add_column(std::unique_ptr<Column> col, std::shared_ptr<std::string> name);
+    void add_column(std::unique_ptr<Column> col, std::optional<std::string> name = std::optional<std::string>());
 
     /** Return the value at the given column and row. Accessing rows or
     *  columns out of bounds, or request the wrong type is undefined.*/
@@ -115,7 +115,7 @@ public:
 
     std::optional<double> get_double(size_t col, size_t row) const;
 
-    std::weak_ptr<std::string> get_string(size_t col, size_t row) const;
+    std::optional<std::string> get_string(size_t col, size_t row) const;
 
     /** Return the offset of the given column name or -1 if no such col. */
     int get_col(std::string& col) const;
@@ -132,7 +132,7 @@ public:
 
     void set(size_t col, size_t row, std::optional<double> val);
 
-    void set(size_t col, size_t row, std::shared_ptr<std::string> val);
+    void set(size_t col, size_t row, std::optional<std::string> val);
 
     /** Set the fields of the given row object with values from the columns at
     * the given offset.  If the row is not form the same schema as the

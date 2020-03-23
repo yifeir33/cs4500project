@@ -3,7 +3,6 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <string>
-#include <memory>
 #include <vector>
 #include <optional>
 
@@ -37,7 +36,7 @@ public:
     virtual void push_back(std::optional<int> val);
     virtual void push_back(std::optional<bool> val);
     virtual void push_back(std::optional<double> val);
-    virtual void push_back(std::shared_ptr<std::string> val);
+    virtual void push_back(std::optional<std::string> val);
 
     /** Returns the number of elements in the column. */
     virtual size_t size() const = 0;
@@ -148,20 +147,20 @@ public:
  */
 class StringColumn : public Column {
 private:
-    std::vector<std::shared_ptr<std::string>> _data;
+    std::vector<std::optional<std::string>> _data;
 
 public:
     StringColumn() = default;
     StringColumn(int n, ...);
 
-    void push_back(std::shared_ptr<std::string> val) override;
+    void push_back(std::optional<std::string> val) override;
 
-    std::weak_ptr<std::string> get(size_t idx);
+    std::optional<std::string> get(size_t idx);
 
     StringColumn* as_string() override;
 
     /** Set value at idx. An out of bound idx is undefined.  */
-    std::shared_ptr<std::string> set(size_t idx, std::shared_ptr<std::string> val);
+    std::optional<std::string> set(size_t idx, std::optional<std::string> val);
 
     size_t size() const override;
 

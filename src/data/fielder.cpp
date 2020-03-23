@@ -8,7 +8,7 @@ void Fielder::start([[maybe_unused]]size_t r){}
 void Fielder::accept([[maybe_unused]]std::optional<bool> b){}
 void Fielder::accept([[maybe_unused]]std::optional<double> d){}
 void Fielder::accept([[maybe_unused]]std::optional<int> i){}
-void Fielder::accept([[maybe_unused]]std::weak_ptr<std::string> s){}
+void Fielder::accept([[maybe_unused]]std::optional<std::string> s){}
 
 /** Called when all fields have been seen. */
 void Fielder::done(){}

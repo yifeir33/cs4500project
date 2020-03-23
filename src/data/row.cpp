@@ -31,7 +31,7 @@ void Row::set(size_t col, std::optional<bool> val) {
 }
 
 /** The string is external. */
-void Row::set(size_t col, std::shared_ptr<std::string> val){
+void Row::set(size_t col, std::optional<std::string> val){
     _values[col] = val;
 }
 
@@ -60,8 +60,8 @@ std::optional<double> Row::get_double(size_t col) const {
     return std::get<std::optional<double>>(_values[col]);
 }
 
-std::shared_ptr<std::string> Row::get_string(size_t col) const {
-    return std::get<std::shared_ptr<std::string>>(_values[col]);
+std::optional<std::string> Row::get_string(size_t col) const {
+    return std::get<std::optional<std::string>>(_values[col]);
 }
 
 /** Number of fields in the row. */

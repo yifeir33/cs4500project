@@ -19,7 +19,7 @@
  */
 class Row : public Object {
 private:
-    using schema_variant = std::variant<std::optional<int>, std::optional<double>, std::optional<bool>, std::shared_ptr<std::string>>;
+    using schema_variant = std::variant<std::optional<int>, std::optional<double>, std::optional<bool>, std::optional<std::string>>;
 
     size_t _width;
     char *_types;
@@ -42,7 +42,7 @@ public:
     void set(size_t col, std::optional<bool> val);
 
     /** The string is external. */
-    void set(size_t col, std::shared_ptr<std::string> val);
+    void set(size_t col, std::optional<std::string> val);
 
     /** Set/get the index of this row (ie. its position in the dataframe. This is
     *  only used for informational purposes, unused otherwise */
@@ -58,7 +58,7 @@ public:
 
     std::optional<double> get_double(size_t col) const;
 
-    std::shared_ptr<std::string> get_string(size_t col) const;
+    std::optional<std::string> get_string(size_t col) const;
 
     /** Number of fields in the row. */
     size_t width() const;

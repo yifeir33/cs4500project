@@ -55,20 +55,15 @@ namespace SorerDataframeAdapter {
             return std::optional<double>();
         }
 
-        std::shared_ptr<std::string> parse_string(SoRParser& parser, size_t col, size_t row) {
-            auto val = parser.getColIdx(col, row);
-            if(val) {
-                // copy construct a heap allocated string
-                return std::make_shared<std::string>(*val);
-            }
-            return std::shared_ptr<std::string>();
+        std::optional<std::string> parse_string(SoRParser& parser, size_t col, size_t row) {
+            // already in the correct format
+            return parser.getColIdx(col, row);
         }
 
         bool parse_and_fill_row(SoRParser& parser, size_t row, Row& row_obj){
             row_obj.set_index(row);
             for(size_t c = 0; c < parser.ncols(); ++c) {
                 // ew, they use C++ exceptions to signal EOF
-                // This is probably terrible performance, shout out python
                 try {
                     switch(parser.getColType(c)) {
                         case SoRType::INT:

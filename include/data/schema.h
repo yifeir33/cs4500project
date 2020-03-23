@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory>
+#include <optional>
 #include <assert.h>
 #include <vector>
 #include <string>
@@ -17,8 +17,8 @@
  */
 class Schema : public Object {
 private:
-    std::vector<std::shared_ptr<std::string>> _columnNames;
-    std::vector<std::shared_ptr<std::string>> _rowNames;
+    std::vector<std::optional<std::string>> _columnNames;
+    std::vector<std::optional<std::string>> _rowNames;
     std::vector<char> _columnTypes;
     size_t _width;
     size_t _length;
@@ -40,19 +40,19 @@ public:
     /** Add a column of the given type and name (can be nullptr), name
     * is external. Names are expectd to be unique, duplicates result
     * in undefined behavior. */
-    void add_column(char typ, std::shared_ptr<std::string> name);
+    void add_column(char typ, std::optional<std::string> name);
 
     /** Add a row with a name (possibly nullptr), name is external.  Names are
     *  expectd to be unique, duplicates result in undefined behavior. */
-    void add_row(std::shared_ptr<std::string> name);
+    void add_row(std::optional<std::string> name);
 
     /** Return name of row at idx; nullptr indicates no name. An idx >= width
     * is undefined. */
-    std::weak_ptr<std::string> row_name(size_t idx) const;
+    std::optional<std::string> row_name(size_t idx) const;
 
     /** Return name of column at idx; nullptr indicates no name given.
     *  An idx >= width is undefined.*/
-    std::weak_ptr<std::string> col_name(size_t idx) const;
+    std::optional<std::string> col_name(size_t idx) const;
 
     /** Return type of column at idx. An idx >= width is undefined. */
     char col_type(size_t idx) const;

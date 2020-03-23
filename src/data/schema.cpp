@@ -29,28 +29,28 @@ _columnTypes(), _width(0), _length(0) {
 /** Add a column of the given type and name (can be nullptr), name
 * is external. Names are expectd to be unique, duplicates result
 * in undefined behavior. */
-void Schema::add_column(char typ, std::shared_ptr<std::string> name) {
+void Schema::add_column(char typ, std::optional<std::string> name) {
     _columnTypes.push_back(typ);
-    _columnNames.push_back(std::move(name));
+    _columnNames.push_back(name);
     ++_width;
 }
 
 /** Add a row with a name (possibly nullptr), name is external.  Names are
 *  expectd to be unique, duplicates result in undefined behavior. */
-void Schema::add_row(std::shared_ptr<std::string> name) {
+void Schema::add_row(std::optional<std::string> name) {
     _rowNames.push_back(name);
     ++_length;
 }
 
 /** Return name of row at idx; nullptr indicates no name. An idx >= width
 * is undefined. */
-std::weak_ptr<std::string> Schema::row_name(size_t idx) const {
+std::optional<std::string> Schema::row_name(size_t idx) const {
     return _rowNames[idx];
 }
 
 /** Return name of column at idx; nullptr indicates no name given.
 *  An idx >= width is undefined.*/
-std::weak_ptr<std::string> Schema::col_name(size_t idx) const {
+std::optional<std::string> Schema::col_name(size_t idx) const {
     return _columnNames[idx];
 }
 

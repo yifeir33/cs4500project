@@ -22,6 +22,7 @@ SCENARIO("Can construct a KVStore containing a Dataframe constructed from double
                 REQUIRE(sum == 0);
             }
         }
+        delete[] vals;
     }
 }
 
@@ -42,6 +43,7 @@ SCENARIO("Can construct a KVStore containing a Dataframe constructed from intege
                 REQUIRE(sum == 0);
             }
         }
+        delete[] vals;
     }
 }
 
@@ -62,5 +64,6 @@ SCENARIO("Can construct a KVStore containing a Dataframe constructed from boolea
                 REQUIRE(sum == 0);
             }
         }
+        delete[] vals;
     }
 }
