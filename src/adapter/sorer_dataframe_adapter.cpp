@@ -93,7 +93,7 @@ namespace SorerDataframeAdapter {
 
     std::shared_ptr<DataFrame> parse_file(const std::string& filename) {
         SoRParser parser;
-        if(!parser.initialize(filename)) return std::shared_ptr<DataFrame>();
+        if(!parser.initialize(filename)) return nullptr;
 
         auto df = std::make_shared<DataFrame>(initialize_schema(parser));
 
