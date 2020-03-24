@@ -5,8 +5,9 @@
 #include <vector>
 #include <string>
 
-#include "util/object.h"
+#include "util/serializable.h"
 #include "data/column.h"
+
 
 /*************************************************************************
  * Schema::
@@ -15,7 +16,7 @@
  * optionally columns and rows can be named by strings.
  * The valid types are represented by the chars 'S', 'B', 'I' and 'F'.
  */
-class Schema : public Object {
+class Schema : public Serializable {
 private:
     std::vector<std::optional<std::string>> _columnNames;
     std::vector<std::optional<std::string>> _rowNames;
@@ -34,17 +35,25 @@ public:
     * characters other than those identifying the four type results in
     * undefined behavior. The argument is external, a nullptr argument is
     * undefined. **/
-    Schema(std::string& types);
+    Schema(const std::string& types);
     Schema(const char* types);
 
-    /** Add a column of the given type and name (can be nullptr), name
+    /**
+     * Move constructor so that serializing values, and
+     * constructing a pointer from the stack allocated class is
+     * more efficient
+     */
+    Schema(Schema&& other) = default;
+
+    /** Add a column of the given type and name, name
     * is external. Names are expectd to be unique, duplicates result
     * in undefined behavior. */
-    void add_column(char typ, std::optional<std::string> name);
+    void add_column(char typ, std::optional<std::string> name = std::nullopt);
 
-    /** Add a row with a name (possibly nullptr), name is external.  Names are
-    *  expectd to be unique, duplicates result in undefined behavior. */
-    void add_row(std::optional<std::string> name);
+    /** Add a row with a name, name is external.  Names are
+    *  expectd to be unique, duplicates result in undefined behavior if they
+    *  are not nullopt. */
+    void add_row(std::optional<std::string> name = std::nullopt);
 
     /** Return name of row at idx; nullptr indicates no name. An idx >= width
     * is undefined. */
@@ -74,4 +83,19 @@ public:
     bool equals(const Object* other) const override;
 
     size_t hash() const override;
+
+    std::vector<uint8_t> serialize() const override;
+
 };
+
+// specialization of deserialize
+template<>
+inline Schema Serializable::deserialize<Schema>(std::vector<uint8_t> data, size_t& pos) {
+    std::string s;
+    size_t width = Serializable::deserialize<size_t>(data, pos);
+    for(size_t i = 0; i < width; ++i) {
+        s += Serializable::deserialize<char>(data, pos);
+    }
+    return Schema(s);
+}
+

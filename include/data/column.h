@@ -6,7 +6,7 @@
 #include <vector>
 #include <optional>
 
-#include "util/object.h"
+#include "util/serializable.h"
 
 // Forward Declarations for Column
 class IntColumn;
@@ -20,7 +20,7 @@ class StringColumn;
  * This abstract class defines methods overriden in subclasses. There is
  * one subclass per element type. Columns are mutable, equality is pointer
  * equality. */
-class Column : public Object {
+class Column : public Serializable {
 public:
     virtual ~Column();
 
@@ -57,6 +57,8 @@ private:
 
 public:
     IntColumn() = default;
+    IntColumn(const IntColumn& other) = default;
+    IntColumn(IntColumn&& other) = default;
     IntColumn(int n, ...);
 
     void push_back(std::optional<int> val) override;
@@ -76,7 +78,25 @@ public:
     size_t hash() const override;
     
     Object *clone() const override;
+
+    std::vector<uint8_t> serialize() const override;
 };
+
+// specialization of deserialize
+template<>
+inline IntColumn Serializable::deserialize<IntColumn>(std::vector<uint8_t> data, size_t& pos) {
+    IntColumn ic;
+    size_t len = Serializable::deserialize<size_t>(data, pos);
+    for(size_t i = 0; i < len; ++i) {
+        bool exists = Serializable::deserialize<bool>(data, pos);
+        if(exists) {
+            ic.push_back(Serializable::deserialize<int>(data, pos));
+        } else {
+            ic.push_back(std::nullopt);
+        }
+    }
+    return ic;
+}
  
 /*************************************************************************
  * FloatColumn::
@@ -88,6 +108,8 @@ private:
 
 public:
     FloatColumn() = default;
+    FloatColumn(const FloatColumn& other) = default;
+    FloatColumn(FloatColumn&& other) = default;
     FloatColumn(int n, ...);
 
     void push_back(std::optional<double> val) override;
@@ -107,7 +129,25 @@ public:
     size_t hash() const override;
 
     Object *clone() const override;
+
+    std::vector<uint8_t> serialize() const override;
 };
+
+// specialization of deserialize
+template<>
+inline FloatColumn Serializable::deserialize<FloatColumn>(std::vector<uint8_t> data, size_t& pos) {
+    FloatColumn fc;
+    size_t len = Serializable::deserialize<size_t>(data, pos);
+    for(size_t i = 0; i < len; ++i) {
+        bool exists = Serializable::deserialize<bool>(data, pos);
+        if(exists) {
+            fc.push_back(Serializable::deserialize<double>(data, pos));
+        } else {
+            fc.push_back(std::nullopt);
+        }
+    }
+    return fc;
+}
 
 /*************************************************************************
  * BoolColumn::
@@ -119,6 +159,8 @@ private:
 
 public:
     BoolColumn() = default;
+    BoolColumn(const BoolColumn& other) = default;
+    BoolColumn(BoolColumn&& other) = default;
     BoolColumn(int n, ...);
 
     void push_back(std::optional<bool> val) override;
@@ -138,7 +180,25 @@ public:
     size_t hash() const override;
 
     Object *clone() const override;
+
+    std::vector<uint8_t> serialize() const override;
 };
+
+// specialization of deserialize
+template<>
+inline BoolColumn Serializable::deserialize<BoolColumn>(std::vector<uint8_t> data, size_t& pos) {
+    BoolColumn bc;
+    size_t len = Serializable::deserialize<size_t>(data, pos);
+    for(size_t i = 0; i < len; ++i) {
+        bool exists = Serializable::deserialize<bool>(data, pos);
+        if(exists) {
+            bc.push_back(Serializable::deserialize<bool>(data, pos));
+        } else {
+            bc.push_back(std::nullopt);
+        }
+    }
+    return bc;
+}
  
 /*************************************************************************
  * StringColumn::
@@ -151,6 +211,8 @@ private:
 
 public:
     StringColumn() = default;
+    StringColumn(const StringColumn& other) = default;
+    StringColumn(StringColumn&& other) = default;
     StringColumn(int n, ...);
 
     void push_back(std::optional<std::string> val) override;
@@ -171,4 +233,23 @@ public:
     size_t hash() const override;
 
     Object *clone() const override;
+
+    std::vector<uint8_t> serialize() const override;
 };
+
+// specialization of deserialize
+template<>
+inline StringColumn Serializable::deserialize<StringColumn>(std::vector<uint8_t> data, size_t& pos) {
+    StringColumn sc;
+    size_t len = Serializable::deserialize<size_t>(data, pos);
+    for(size_t i = 0; i < len; ++i) {
+        bool exists = Serializable::deserialize<bool>(data, pos);
+        if(exists) {
+            sc.push_back(Serializable::deserialize<std::string>(data, pos));
+        } else {
+            sc.push_back(std::nullopt);
+        }
+    }
+    return sc;
+
+}

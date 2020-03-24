@@ -6,13 +6,13 @@ Schema::Schema(const Schema& from) : _columnNames(),_rowNames(),
 _length(from._length) {}
 
 /** Create an empty schema **/
-Schema::Schema() : _columnNames(10), _rowNames(10), _columnTypes(10), _width(0), _length(0) {}
+Schema::Schema() : _columnNames(), _rowNames(), _columnTypes(), _width(0), _length(0) {}
 
 /** Create a schema from a string of types. A string that contains
 * characters other than those identifying the four type results in
 * undefined behavior. The argument is external, a nullptr argument is
 * undefined. **/
-Schema::Schema(std::string& types) : Schema(types.c_str()) {}
+Schema::Schema(const std::string& types) : Schema(types.c_str()) {}
 
 Schema::Schema(const char* types) : _columnNames(), _rowNames(),
 _columnTypes(), _width(0), _length(0) {
@@ -25,6 +25,13 @@ _columnTypes(), _width(0), _length(0) {
         ++c;
     }
 }
+
+/**
+ * Move constructor so that serializing values, and
+ * constructing a pointer from the stack allocated class is
+ * more efficient
+ */
+/* Schema::Schema(Schema&& other) : _columnNames(), _rowNames(), _columnTypes(std::move(other._columnTypes)), _width(other._width), _length(other._length) {} */
 
 /** Add a column of the given type and name (can be nullptr), name
 * is external. Names are expectd to be unique, duplicates result
@@ -56,6 +63,7 @@ std::optional<std::string> Schema::col_name(size_t idx) const {
 
 /** Return type of column at idx. An idx >= width is undefined. */
 char Schema::col_type(size_t idx) const {
+    assert(idx < _columnTypes.size());
     return _columnTypes[idx];
 }
 
@@ -95,7 +103,11 @@ Object *Schema::clone() const {
 
 bool Schema::equals(const Object* other) const {
     const Schema *other_schema = dynamic_cast<const Schema*>(other);
-    if(other_schema && this->_width == other_schema->_width && this->_length == other_schema->_length) {
+    if(other_schema && this->_width == other_schema->_width 
+            && this->_length == other_schema->_length  
+            && this->_columnTypes.size() == other_schema->_columnTypes.size()
+            && this->_columnNames.size() == other_schema->_columnNames.size() 
+            && this->_rowNames.size() == other_schema->_rowNames.size()) {
         for(size_t i = 0; i < _columnNames.size(); ++i) {
             if(_columnNames[i]->compare(*(other_schema->_columnNames[i])) != 0) {
                 return false;
@@ -133,3 +145,15 @@ size_t Schema::hash() const {
     }
     return hash;
 }
+
+std::vector<uint8_t> Schema::serialize() const {
+    auto serialized = Serializable::serialize<size_t>(this->_width);
+
+    // schema type
+    for(size_t i = 0; i < this->_width; ++i) {
+        auto temp = Serializable::serialize<char>(_columnTypes[i]);
+        serialized.insert(serialized.end(), temp.begin(), temp.end());
+    }
+    return serialized;
+}
+

@@ -90,5 +90,4 @@ $(OBJ)/%.o: $(TESTS)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm $(OBJ)/*.o $(BIN)/tests
-	$(MAKE) -C $(BOAT) clean
+	rm $(OBJ)/*.o $(BIN)/tests; $(MAKE) -C $(BOAT) clean

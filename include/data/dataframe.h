@@ -6,6 +6,7 @@
 #include <optional>
 
 #include "util/object.h"
+#include "util/serializable.h"
 #include "data/schema.h"
 #include "data/rower.h"
 #include "data/fielder.h"
@@ -15,6 +16,7 @@
 #define MAX_THREADS    8
 #define THREAD_ROWS    5000
 
+
 /****************************************************************************
  * DataFrame::
  *
@@ -22,7 +24,7 @@
  * holds values of the same type (I, S, B, F). A dataframe has a schema that
  * describes it.
  */
-class DataFrame : public Object {
+class DataFrame : public Serializable {
 private:
     std::unique_ptr<Schema> _schema;
     std::vector<std::unique_ptr<Column>> _columns;
@@ -96,6 +98,8 @@ public:
     * empty. */
     DataFrame(std::unique_ptr<Schema> schema);
 
+    DataFrame(DataFrame&& other) = default;
+
     virtual ~DataFrame();
 
     /** Returns the dataframe's schema. Modifying the schema after a dataframe
@@ -105,7 +109,7 @@ public:
     /** Adds a column this dataframe, updates the schema, the new column
     * is external, and appears as the last column of the dataframe, the
     * name is optional and external. A nullptr colum is undefined. */
-    void add_column(std::unique_ptr<Column> col, std::optional<std::string> name = std::optional<std::string>());
+    void add_column(std::unique_ptr<Column> col, std::optional<std::string> name = std::nullopt);
 
     /** Return the value at the given column and row. Accessing rows or
     *  columns out of bounds, or request the wrong type is undefined.*/
@@ -171,4 +175,36 @@ public:
     size_t hash() const override;
 
     bool operator==(const DataFrame& other) const;
+
+    std::vector<uint8_t> serialize() const override;
+
 };
+
+// specialization of deserialize
+template<>
+inline DataFrame Serializable::deserialize<DataFrame>(std::vector<uint8_t> data, size_t& pos) {
+    Schema schema = Serializable::deserialize<Schema>(data, pos);
+    size_t col_cnt = Serializable::deserialize<size_t>(data, pos);
+    assert(col_cnt == schema.width());
+    DataFrame df;
+    for(size_t i = 0; i < col_cnt; ++i){
+        std::unique_ptr<Column> col = nullptr;
+        switch(schema.col_type(i)){
+            case 'I':
+                col = std::make_unique<IntColumn>(Serializable::deserialize<IntColumn>(data, pos));
+                break;
+            case 'F':
+                col = std::make_unique<FloatColumn>(Serializable::deserialize<FloatColumn>(data, pos));
+                break;
+            case 'B':
+                col = std::make_unique<BoolColumn>(Serializable::deserialize<BoolColumn>(data, pos));
+                break;
+            case 'S':
+                col = std::make_unique<StringColumn>(Serializable::deserialize<StringColumn>(data, pos));
+                break;
+        }
+        assert(col);
+        df.add_column(std::move(col));
+    }
+    return df;
+}

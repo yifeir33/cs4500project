@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "data/dataframe.h"
 
 // static functions
@@ -51,6 +53,11 @@ DataFrame::DataFrame(std::unique_ptr<Schema> schema) : _schema(std::move(schema)
     }
 }
 
+/* DataFrame::DataFrame(DataFrame&& other) : _schema(std::move(other._schema)), _columns(std::move(other._columns)) { */
+/*     other._schema = nullptr; */
+/*     other._columns.clear(); */
+/* } */
+
 DataFrame::~DataFrame() {}
 
 std::unique_ptr<Column> DataFrame::_get_col_from_type(char type) const {
@@ -79,6 +86,7 @@ const Schema& DataFrame::get_schema() const {
 * is external, and appears as the last column of the dataframe, the
 * name is optional and external. A nullptr colum is undefined. */
 void DataFrame::add_column(std::unique_ptr<Column> col, std::optional<std::string> name){
+    assert(col);
     _schema->add_column(col->get_type(), name);
     _columns.push_back(std::move(col));
 }
@@ -163,6 +171,7 @@ void DataFrame::fill_row(size_t idx, Row& row) const {
                 row.set(c, this->get_string(c, idx));
                 break;
             default:
+                p("Unexpected Column Type At Index ").p(c).p(": ").pln(_schema->col_type(c));
                 assert(false); // unreachable
         }
     }
@@ -186,6 +195,7 @@ void DataFrame::add_row(Row& row) {
                 _columns[c]->push_back(row.get_string(c));
                 break;
             default:
+                p("Unexpected Column Type At Index ").p(c).p(": ").pln(_schema->col_type(c));
                 assert(false); // unreachable
         }
     }
@@ -317,8 +327,13 @@ void DataFrame::print() const {
 
 bool DataFrame::equals(const Object* other) const {
     const DataFrame *df_other = dynamic_cast<const DataFrame*>(other);
-    if(!df_other) return false;
-    return _columns == df_other->_columns && _schema->equals(df_other->_schema.get());
+    if(df_other && _columns.size() == df_other->_columns.size() && _schema->equals(df_other->_schema.get())){
+        for(size_t c = 0; c < _columns.size(); ++c) {
+            if(!_columns[c]->equals(df_other->_columns[c].get())) return false;
+        }
+        return true;
+    }
+    return false;
 }
 
 Object* DataFrame::clone() const {
@@ -336,6 +351,19 @@ size_t DataFrame::hash() const {
 bool DataFrame::operator==(const DataFrame& other) const {
     return _columns == other._columns && _schema->equals(other._schema.get());
 }
+
+std::vector<uint8_t> DataFrame::serialize() const {
+    std::vector<uint8_t> serialized = _schema->serialize();
+    size_t col_cnt = _columns.size();
+    auto temp =  Serializable::serialize<size_t>(col_cnt);
+    serialized.insert(serialized.end(), temp.begin(), temp.end());
+    for(size_t i = 0; i < col_cnt; ++i){
+        temp = _columns[i]->serialize();
+        serialized.insert(serialized.end(), temp.begin(), temp.end());
+    }
+    return serialized;
+}
+
 
 // Print Rower
 bool DataFrame::PrintRower::accept(Row& r){

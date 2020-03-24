@@ -19,19 +19,34 @@
 /*     initalized = true; */
 /* } */
 
-std::optional<int> generate_int(){
+inline std::optional<int> generate_existing_int(){
     return std::optional<int>(rand() % 10000 * (rand() % 2 == 1 ? 1 : -1));
 }
 
-std::optional<bool> generate_bool(){
+inline std::optional<int> generate_int(){
+    if(rand() % 2 == 0) return std::nullopt;
+    return generate_existing_int();
+}
+
+inline std::optional<bool> generate_existing_bool(){
     return std::optional<bool>(rand() % 2);
 }
 
-std::optional<double> generate_float(){
-    return std::optional<double>((*generate_int() * 1.0) / ((rand() % 5) * 1.0));
+inline std::optional<bool> generate_bool(){
+    if(rand() % 2 == 0) return std::nullopt;
+    return generate_existing_bool();
 }
 
-std::optional<std::string> generate_string(){
+inline std::optional<double> generate_existing_float() {
+    return std::optional<double>((*generate_existing_int() * 1.0) / ((rand() % 5) * 1.0));
+}
+
+inline std::optional<double> generate_float(){
+    if(rand() % 2 == 0) return std::nullopt;
+    return generate_existing_float();
+}
+
+inline std::optional<std::string> generate_existing_string(){
     char buffer[11]{};
     size_t length = rand() % 10;
     size_t i = 0;
@@ -44,7 +59,12 @@ std::optional<std::string> generate_string(){
     return std::optional<std::string>(buffer);
 }
 
-bool generate_large_dataframe(DataFrame& df, size_t nrows){
+inline std::optional<std::string> generate_string(){
+    if(rand() % 2 == 0) return std::nullopt;
+    return generate_existing_string();
+}
+
+inline bool generate_large_dataframe(DataFrame& df, size_t nrows){
     /* if(!initalized) init(); */
     const Schema& scm = df.get_schema();
 
