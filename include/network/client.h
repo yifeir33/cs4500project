@@ -13,7 +13,7 @@ class CtSConnection;
 class Client : public NetPort {
 private:
     sockaddr_in _server;
-    CtSConnection *_server_connection;
+    std::unique_ptr<CtSConnection> _server_connection;
     std::mutex _oclient_mutex;
     std::vector<sockaddr_in> _other_clients;
     std::atomic<bool> _client_update; 
@@ -27,7 +27,7 @@ public:
 
     ~Client();
 
-    Packet *get_registration_packet();
+    std::unique_ptr<Packet> get_registration_packet();
 
     std::unique_ptr<Connection> _new_connection(int new_conn_fd, sockaddr_in other) override;
 

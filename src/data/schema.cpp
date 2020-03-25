@@ -97,8 +97,8 @@ size_t Schema::length() const {
     return _length;
 }
 
-Object *Schema::clone() const {
-    return new Schema(*this);
+std::shared_ptr<Object> Schema::clone() const {
+    return std::make_shared<Schema>(*this);
 }
 
 bool Schema::equals(const Object* other) const {

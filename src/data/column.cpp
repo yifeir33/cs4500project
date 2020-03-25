@@ -75,8 +75,8 @@ size_t IntColumn::hash() const {
     return hash;
 }
 
-Object *IntColumn::clone() const {
-    return new IntColumn(*this);
+std::shared_ptr<Object> IntColumn::clone() const {
+    return std::make_shared<IntColumn>(*this);
 }
 
 std::vector<uint8_t> IntColumn::serialize() const {
@@ -154,8 +154,8 @@ size_t FloatColumn::hash() const {
     return hash;
 }
 
-Object *FloatColumn::clone() const {
-    return new FloatColumn(*this);
+std::shared_ptr<Object> FloatColumn::clone() const {
+    return std::make_shared<FloatColumn>(*this);
 }
 
 std::vector<uint8_t> FloatColumn::serialize() const {
@@ -233,8 +233,8 @@ size_t BoolColumn::hash() const {
     return hash;
 }
 
-Object *BoolColumn::clone() const {
-    return new BoolColumn(*this);
+std::shared_ptr<Object> BoolColumn::clone() const {
+    return std::make_shared<BoolColumn>(*this);
 }
 
 std::vector<uint8_t> BoolColumn::serialize() const {
@@ -321,8 +321,8 @@ size_t StringColumn::hash() const {
     return hash;
 }
 
-Object *StringColumn::clone() const {
-    return new StringColumn(*this);
+std::shared_ptr<Object> StringColumn::clone() const {
+    return std::make_shared<StringColumn>(*this);
 }
 
 std::vector<uint8_t> StringColumn::serialize() const {

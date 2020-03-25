@@ -14,7 +14,7 @@ protected:
     std::atomic<size_t> _expected_update;
     std::atomic<bool> _new_update;
 
-    void _on_clean_up(Connection *c) override;
+    void _on_clean_up(std::unique_ptr<Connection> c) override;
 
     std::unique_ptr<Connection> _new_connection(int new_conn_fd, sockaddr_in other) override;
 
@@ -29,7 +29,7 @@ public:
 
     void update_and_alert(sockaddr_in saddr);
 
-    Packet* get_clients();
+    std::unique_ptr<Packet> get_clients();
 
     void remove_client(sockaddr_in client);
 

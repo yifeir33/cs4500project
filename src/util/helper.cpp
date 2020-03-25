@@ -14,6 +14,7 @@ const Sys& Sys::p(int i) const { std::cout << i;  return *this; }
 const Sys& Sys::p(size_t i) const { std::cout << i;  return *this; }
 const Sys& Sys::p(const char* c) const { std::cout << c;  return *this; }
 const Sys& Sys::p(char c) const { (c == '\n' ? std::cout <<std::endl : std::cout << c);  return *this; }
+const Sys& Sys::p(std::string s) const { std::cout <<s; return *this; }
 const Sys& Sys::pln() const { std::cout << std::endl;  return *this; }
 const Sys& Sys::pln(int i) const { std::cout << i << std::endl;  return *this; }
 const Sys& Sys::pln(char* c) const { std::cout << c << std::endl;  return *this; }
@@ -22,6 +23,7 @@ const Sys& Sys::pln(char c) const { std::cout << c << std::endl;  return *this; 
 const Sys& Sys::pln(double x) const { std::cout << x << std::endl;  return *this; }
 const Sys& Sys::pln(size_t x) const { std::cout << x << std::endl;  return *this; }
 const Sys& Sys::pln(const char* c) const { std::cout << c << std::endl;  return *this; }
+const Sys& Sys::pln(std::string s) const { std::cout <<s <<std::endl; return *this; }
 
 // Copying strings
 /* char* duplicate(const char* s) { */

@@ -33,7 +33,7 @@ protected:
 
     void _clean_up_closed();
 
-    virtual void _on_clean_up(Connection *c) = 0;
+    virtual void _on_clean_up(std::unique_ptr<Connection> c) = 0;
 
     virtual void _initial() = 0;
 

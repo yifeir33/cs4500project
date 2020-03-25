@@ -47,9 +47,9 @@ ParseResult CtCConnection::_parse_data(Packet& packet) {
 
 int CtCConnection::_respond(Packet& msg) {
     if(msg.type == ASK_FOR_ID){
-        Packet *packet = _client.get_registration_packet();
+        auto packet = _client.get_registration_packet();
         packet->type = ID;
-        if(!this->_send_packet(packet)){
+        if(!this->_send_packet(*packet)){
             p("Failed to respond!").p('\n');
         }
         return 0;

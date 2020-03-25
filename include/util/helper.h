@@ -18,6 +18,7 @@ public:
     const Sys& p(size_t i) const;
     const Sys& p(const char* c) const;
     const Sys& p(char c) const;
+    const Sys& p(std::string s) const;
     const Sys& pln() const;
     const Sys& pln(int i) const;
     const Sys& pln(char* c) const;
@@ -26,6 +27,7 @@ public:
     const Sys& pln(double x) const;
     const Sys& pln(size_t x) const;
     const Sys& pln(const char* c) const;
+    const Sys& pln(std::string s) const;
 
     // Copying strings
     /* char* duplicate(const char* s); */

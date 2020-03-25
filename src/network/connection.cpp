@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <cstring>
+#include <string>
 
 #include "network/socket_util.h"
 #include "network/connection.h"
@@ -45,23 +46,20 @@ bool Connection::dog_is_alive() const {
 bool Connection::_keep_alive() {
     Packet packet;
     packet.type = KEEP_ALIVE;
-    packet.length = 0;
-    return this->_send_packet(&packet);
+    packet.value.clear();
+    return this->_send_packet(packet);
 }
 
 void Connection::_send_shutdown() {
     Packet packet;
     packet.type = SHUTDOWN;
-    packet.length = 0;
-    this->_send_packet(&packet); // regardless we shutdown
+    packet.value.clear();
+    this->_send_packet(packet); // regardless we shutdown
     this->_finished = true;
 }
 
-bool Connection::_send_packet(Packet *packet) {
-    assert(packet);
-    uint8_t w_buffer[PACKET_MAX_SIZE];
-    int p_size = packet->pack(w_buffer, PACKET_MAX_SIZE);
-    if(p_size < 0) return false;
+bool Connection::_send_packet(Packet& packet) {
+    std::vector packed = packet.pack();
     int attempt = 0;
     ssize_t sent = 0;
 
@@ -73,7 +71,7 @@ bool Connection::_send_packet(Packet *packet) {
                 return false;
             }
         }
-        if((sent = send(_conn_fd, w_buffer, p_size, 0)) < 0){
+        if((sent = send(_conn_fd, packed.data(), packed.size(), 0)) < 0){
             if(errno != EWOULDBLOCK && errno != EAGAIN) {
                 perror("Error sending packet: ");
                 return false;
@@ -152,10 +150,10 @@ ParseResult Connection::_parse_data(Packet& packet){
             return ParseResult::Response;
         case ID:
             {
-                if(packet.length != sizeof(sockaddr_in)) {
+                if(packet.value.size() != sizeof(sockaddr_in)) {
                     return ParseResult::ParseError;
                 }
-                memcpy(&this->_conn_other, packet.value, packet.length);
+                memcpy(&this->_conn_other, packet.value.data(), packet.value.size());
                 break;
             }
         case CHAR_MSG:
@@ -166,9 +164,10 @@ ParseResult Connection::_parse_data(Packet& packet){
                 else 
                     pln("Error Received:");
 
-                char msg[DATA_MAX] = {0};
-                memcpy(msg, &packet.value, packet.length);
-                msg[packet.length] = '\0';
+                std::string msg;
+                for(size_t i = 0; i < packet.value.size(); ++i) {
+                    msg += packet.value[i];
+                }
                 pln(msg);
                 /* p("Sender:\n"); */
                 /* char addr_str[INET_ADDRSTRLEN]; */
@@ -267,7 +266,7 @@ void Connection::print_read_buffer(){
     pln();
 }
 
-Object *Connection::clone() const {
+std::shared_ptr<Object> Connection::clone() const {
     return nullptr;
 }
 

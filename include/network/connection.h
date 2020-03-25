@@ -9,7 +9,7 @@
 #include "network/packet.h"
 
 #define WATCHDOG_TIMEOUT  60 // seconds
-#define BUFFER_SIZE (2 * PACKET_MAX_SIZE)
+#define BUFFER_SIZE       4096 // half-page buffer
 
 class Connection : public Object {
 private:
@@ -30,7 +30,7 @@ protected:
 
     void _send_shutdown();
 
-    bool _send_packet(Packet *packet);
+    bool _send_packet(Packet& packet);
 
     int _check_for_socket_errors();
 
@@ -69,7 +69,7 @@ public:
 
     void print_read_buffer();
 
-    Object *clone() const override;
+    std::shared_ptr<Object> clone() const override;
 
     bool equals(const Object* other) const override;
 

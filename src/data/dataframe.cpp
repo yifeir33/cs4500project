@@ -233,23 +233,23 @@ void DataFrame::map(Rower& r) const {
  * do that in a thread safe manner internally, or reults are
  * undefined behavior.
  */
-void DataFrame::_pmap_helper(size_t row_start, size_t row_end, Rower *rower) const {
+void DataFrame::_pmap_helper(size_t row_start, size_t row_end, Rower& rower) const {
     for(size_t r = row_start; r < row_end; ++r) {
         Row row(*_schema);
         this->fill_row(r, row);
-        rower->accept(row);
+        rower.accept(row);
     }
 }
 
 /** This method clones the Rower and executes the map in parallel. Join is
   * used at the end to merge the results. */
-void DataFrame::pmap(Rower& r) const {
+void DataFrame::pmap(Rower& rower) const {
     size_t row_cnt = this->nrows();
     // decide how many threads to use
     size_t thread_cnt = row_cnt / THREAD_ROWS;
     if(thread_cnt <= 1){
         // don't bother multi-threading, it will be faster to single thread
-        this->map(r);
+        this->map(rower);
         return;
     }
     size_t step_size = THREAD_ROWS;
@@ -258,21 +258,21 @@ void DataFrame::pmap(Rower& r) const {
         step_size = row_cnt / thread_cnt;
     }
 
-    Rower **rowers = new Rower*[thread_cnt];
-    rowers[0] = &r;
-    for(size_t i = 1; i < thread_cnt; ++i){
-        rowers[i] = static_cast<Rower*>(r.clone());
-        if(i == 1 && !rowers[i]){
+    std::vector<std::shared_ptr<Rower>> rower_clones;
+    for(size_t i = 0; i < thread_cnt - 1; ++i){
+        auto rc = std::dynamic_pointer_cast<Rower>(rower.clone());
+        if(i == 1 && !rc){
             // clone failed - fallback to single threading
-            delete[] rowers;
-            map(r);
+            map(rower);
             return;
         } else {
-            assert(rowers[i]); // make sure clone suceeds
+            assert(rc); // make sure clone suceeds
         }
+        rower_clones.push_back(rc);
     }
+    assert(thread_cnt - 1 == rower_clones.size());
 
-    std::thread **threads = new std::thread*[thread_cnt];
+    std::vector<std::thread> threads;
 
     // run multi-threaded
     size_t row_start = 0;
@@ -280,26 +280,23 @@ void DataFrame::pmap(Rower& r) const {
         // figure out bounds
         size_t row_end = (i == (thread_cnt - 1)) ? this->nrows() : row_start + step_size;
         assert(row_end <= row_cnt);
-        threads[i] = new std::thread(&DataFrame::_pmap_helper, this, row_start, row_end, rowers[i]);
+        // this function constructs the thread at the end of the array
+        threads.emplace_back([this, row_start, row_end, i, &rower_clones, &rower]{
+                this->_pmap_helper(row_start, row_end, (i > 0 ? *rower_clones[i - 1] : rower));
+        });
         row_start = row_end;
     }
+    assert(threads.size() == thread_cnt);
 
     // wait on threads
-    for(size_t i = 0; i < thread_cnt; ++i){
-        threads[i]->join();
+    for(size_t i = 0; i < threads.size(); ++i){
+        threads[i].join();
     }
     
     // merge rower results and clean-up allocated memory
-    for(size_t i = 1; i < thread_cnt; ++i) {
-        rowers[0]->join_delete(rowers[i]);
+    for(size_t i = 0; i < rower_clones.size(); ++i) {
+        rower.join(rower_clones[i]);
     }
-
-    // clean-up memory
-    for(size_t i = 0; i < thread_cnt; ++i){
-        delete threads[i];
-    }
-    delete[] threads;
-    delete[] rowers;
 }
 
 
@@ -336,8 +333,8 @@ bool DataFrame::equals(const Object* other) const {
     return false;
 }
 
-Object* DataFrame::clone() const {
-    return new DataFrame(*this);
+std::shared_ptr<Object> DataFrame::clone() const {
+    return std::make_shared<DataFrame>(*this);
 }
 
 size_t DataFrame::hash() const {
@@ -371,7 +368,7 @@ bool DataFrame::PrintRower::accept(Row& r){
     return true;
 }
 
-void DataFrame::PrintRower::join_delete([[maybe_unused]]Rower* other) {
+void DataFrame::PrintRower::join([[maybe_unused]]std::shared_ptr<Rower> other) {
     assert(false);
 }
 
@@ -383,7 +380,7 @@ bool DataFrame::PrintRower::equals(const Object *other) const {
     return dynamic_cast<const DataFrame::PrintRower*>(other);
 }
 
-Object* DataFrame::PrintRower::clone() const {
+std::shared_ptr<Object> DataFrame::PrintRower::clone() const {
     return nullptr;
 }
 
@@ -416,7 +413,7 @@ void DataFrame::PrintRower::PrintFielder::accept(std::optional<std::string> s){
     p('>');
 }
 
-Object* DataFrame::PrintRower::PrintFielder::clone() const {
+std::shared_ptr<Object> DataFrame::PrintRower::PrintFielder::clone() const {
     return nullptr;
 }
 

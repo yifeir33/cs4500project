@@ -40,7 +40,7 @@ private:
      * do that in a thread safe manner internally, or reults are
      * undefined behavior.
      */
-    void _pmap_helper(size_t row_start, size_t row_end, Rower *rower) const;
+    void _pmap_helper(size_t row_start, size_t row_end, Rower& rower) const;
 
     /* Helper Rower to print the dataframe */
     class PrintRower : public Rower {
@@ -64,7 +64,7 @@ private:
 
             bool equals(const Object *other) const override;
 
-            Object *clone() const override;
+            std::shared_ptr<Object> clone() const override;
         };
 
         PrintFielder pf;
@@ -73,13 +73,13 @@ private:
 
         bool accept(Row& r) override;
 
-        void join_delete(Rower* other) override;
+        void join(std::shared_ptr<Rower> other) override;
 
         size_t hash() const override;
 
         bool equals(const Object *other) const override;
         
-        Object *clone() const override;
+        std::shared_ptr<Object> clone() const override;
     };
 
 public:
@@ -170,7 +170,7 @@ public:
 
     bool equals(const Object* other) const override;
 
-    Object* clone() const override;
+    std::shared_ptr<Object> clone() const override;
 
     size_t hash() const override;
 

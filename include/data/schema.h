@@ -78,7 +78,7 @@ public:
     /** The number of rows */
     size_t length() const;
 
-    Object *clone() const override;
+    std::shared_ptr<Object> clone() const override;
 
     bool equals(const Object* other) const override;
 

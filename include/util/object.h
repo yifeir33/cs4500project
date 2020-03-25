@@ -1,4 +1,7 @@
 #pragma once
+
+#include <memory>
+
 #include "util/helper.h"
 // LANGUAGE: CwC
 
@@ -16,7 +19,7 @@ public:
     virtual bool equals(const Object *other) const = 0;
 
     /** Return a copy of the object; nullptr is considered an error */
-    virtual Object* clone() const = 0;
+    virtual std::shared_ptr<Object> clone() const = 0;
 
     /** Returned c_str is owned by the object, don't modify nor delete. */
     /* virtual char* c_str() const = 0; */

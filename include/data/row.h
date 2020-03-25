@@ -75,5 +75,5 @@ public:
 
     size_t hash() const override;
 
-    Object *clone() const override;
+    std::shared_ptr<Object> clone() const override;
 };

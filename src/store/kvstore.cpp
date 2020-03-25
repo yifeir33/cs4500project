@@ -26,8 +26,8 @@ bool KVStore::Key::equals(const Object *other) const {
     return false;
 }
 
-Object *KVStore::Key::clone() const {
-    return new Key(_name, _node_idx);
+std::shared_ptr<Object> KVStore::Key::clone() const {
+    return std::make_shared<KVStore::Key>(_name, _node_idx);
 }
 
 bool KVStore::Key::operator==(const Key& other) const {
@@ -90,6 +90,6 @@ bool KVStore::equals(const Object *other) const {
     return false;
 }
 
-Object *KVStore::clone() const {
-    return new KVStore();
+std::shared_ptr<Object> KVStore::clone() const {
+    return std::make_shared<KVStore>();
 }

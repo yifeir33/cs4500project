@@ -29,26 +29,24 @@ void CtSConnection::run() {
 }
 
 void CtSConnection::register_with_server() {
-    Packet *packet = _client.get_registration_packet();
-    if(!this->_send_packet(packet)){
+    auto packet = _client.get_registration_packet();
+    if(!this->_send_packet(*packet)){
         p("Unable to register!");
         this->_finished = true;
     } else {
         p("Registered with server").p('\n');
     }
-    delete packet;
 }
 
 void CtSConnection::deregister_and_shutdown(){
-    Packet *packet = _client.get_registration_packet();
+    auto packet = _client.get_registration_packet();
     packet->type = DEREGISTER;
-    if(!this->_send_packet(packet)){
+    if(!this->_send_packet(*packet)){
         p("Unable to deregister!").p('\n');
         this->_finished = true;
     } else {
         p("Deregistered!").p('\n');
     }
-    delete packet;
     this->_send_shutdown();
 }
 
@@ -56,19 +54,18 @@ ParseResult CtSConnection::_parse_data(Packet &packet) {
     if(packet.type == CLIENT_UPDATE){
         p("Client Update!").p('\n');
         // reset other clients
-        _client._oclient_mutex.lock();
+        std::lock_guard<std::mutex> client_lock(_client._oclient_mutex);
         _client._other_clients.clear();
 
         size_t pos = 0;
-        while(pos + sizeof(sockaddr_in) <= packet.length){
+        while(pos + sizeof(sockaddr_in) <= packet.value.size()){
             sockaddr_in saddr;
-            memcpy(&saddr, packet.value + pos, sizeof(saddr));
+            memcpy(&saddr, packet.value.data() + pos, sizeof(saddr));
             pos += sizeof(saddr);
             if(!socket_util::sockaddr_eq(_client._self, saddr)){
                 _client._other_clients.push_back(saddr);
             }
         }
-        _client._oclient_mutex.unlock();
         return ParseResult::Success;
     }
     return Connection::_parse_data(packet);

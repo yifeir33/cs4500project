@@ -36,8 +36,8 @@ private:
             return 169 + _sum;
         }
 
-        Object *clone() const override {
-            return new TestSumRower::TestSumFielder();
+        std::shared_ptr<Object> clone() const override {
+            return std::make_shared<TestSumRower::TestSumFielder>();
         }
 
         bool equals(const Object* other) const override {
@@ -54,15 +54,14 @@ public:
         return true;
     }
 
-    Object *clone() const override {
-        return new TestSumRower();
+    std::shared_ptr<Object> clone() const override {
+        return std::make_shared<TestSumRower>();
     }
 
-    void join_delete(Rower *other) override {
-        TestSumRower *tsr = dynamic_cast<TestSumRower*>(other);
+    void join(std::shared_ptr<Rower> other) override {
+        auto tsr = std::dynamic_pointer_cast<TestSumRower>(other);
         assert(tsr);
         _sum += tsr->get_sum();
-        delete tsr;
     }
 
     size_t get_sum() {

@@ -15,12 +15,10 @@ void ServerConnection::run() {
         }
         if(_server._new_update){
             p("New Update: Sending Client List").p('\n');
-            Packet *packet = _server.get_clients();
-            if(!this->_send_packet(packet)){
-                delete packet;
+            std::unique_ptr<Packet> packet = _server.get_clients();
+            if(!this->_send_packet(*packet)){
                 break;
             }
-            delete packet;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         if(!this->_keep_alive())
@@ -36,11 +34,11 @@ ParseResult ServerConnection::_parse_data(Packet& packet) {
     /* p("ServerConnection: parse data").p('\n'); */
     if(packet.type == REGISTER || packet.type == DEREGISTER) {
         p("Register/Deregister").p('\n');
-        if(packet.length != sizeof(sockaddr_in)) {
+        if(packet.value.size() != sizeof(sockaddr_in)) {
             return ParseResult::ParseError;
         }
         sockaddr_in saddr{};
-        memcpy(&saddr, packet.value, packet.length);
+        memcpy(&saddr, packet.value.data(), packet.value.size());
 
         if(packet.type == REGISTER){
             // use this to track which client this is

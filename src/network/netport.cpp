@@ -42,13 +42,12 @@ bool NetPort::dog_is_alive() const {
 }
 
 void NetPort::close_all(){
-    _connections_mutex.lock();
+    std::lock_guard<std::mutex> lock(_connections_mutex);
     for(size_t i = 0; i < _connections.size(); ++i){
         _connections[i]->ask_to_finish();
         _connections[i]->join();
     }
     _connections.clear();
-    _connections_mutex.unlock();
 }
 
 bool NetPort::_accept_connection(){
@@ -65,27 +64,31 @@ bool NetPort::_accept_connection(){
         assert(saddr_size == sizeof(sockaddr_in));
         auto c = _new_connection(new_connection_fd, saddr);
         c->start();
-        _connections_mutex.lock();
+        std::lock_guard<std::mutex> lock(_connections_mutex);
         _connections.push_back(std::move(c));
-        _connections_mutex.unlock();
         return true;
     }
 }
 
 void NetPort::_clean_up_closed() {
     struct closed_predicate {
+        NetPort& conn_owner;
+
+        closed_predicate(NetPort& np) : conn_owner(np) {}
+
         bool operator()(std::unique_ptr<Connection>& c) {
             if(c->is_finished()){
                 c->join();
+                conn_owner._on_clean_up(std::move(c));
                 return true;
             }
             return false;
         }
     };
-    auto p = closed_predicate();
-    _connections_mutex.lock();
+
+    auto p = closed_predicate(*this);
+    std::lock_guard<std::mutex> lock(_connections_mutex);
     std::remove_if(_connections.begin(), _connections.end(), p);
-    _connections_mutex.unlock();
 }
 
 void NetPort::listen_on_socket(int conn_count){

@@ -31,7 +31,7 @@ public:
 
         bool equals(const Object *other) const override;
 
-        Object* clone() const override;
+        std::shared_ptr<Object> clone() const override;
 
         bool operator==(const Key& k) const;
     };
@@ -56,7 +56,7 @@ public:
 
     bool equals(const Object *other) const override;
 
-    Object* clone() const override;
+    std::shared_ptr<Object> clone() const override;
 
 private:
     std::unordered_map<Key, std::shared_ptr<DataFrame>, KeyHasher> _local_map;

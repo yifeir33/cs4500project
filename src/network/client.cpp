@@ -9,7 +9,7 @@
 #include "network/ctc_connection.h"
 
 Client::Client(const char *client_ip, const char *server_ip, in_port_t port)
-    : NetPort(client_ip, 0), _client_update(false) {
+    : NetPort(client_ip, 0),_server_connection(nullptr), _client_update(false) {
     _server.sin_family = AF_INET;
     if(inet_pton(AF_INET, server_ip, &(_server.sin_addr)) <= 0){
         perror("Error converting address: ");
@@ -22,15 +22,14 @@ Client::~Client(){
     if(_server_connection){
         _server_connection->ask_to_finish();
         _server_connection->join();
-        delete _server_connection;
     }
 }
 
-Packet *Client::get_registration_packet() {
-    Packet *packet = new Packet();
+std::unique_ptr<Packet> Client::get_registration_packet() {
+    auto packet = std::make_unique<Packet>();
     packet->type = REGISTER;
-    packet->length = sizeof(_self);
-    memcpy(packet->value, &_self, sizeof(_self));
+    packet->value.resize(sizeof(_self));
+    memcpy(packet->value.data(), &_self, sizeof(_self));
     return packet;
 }
 
@@ -49,7 +48,7 @@ void Client::_initial() {
         return;
     }
 
-    _server_connection = new CtSConnection(sock, *this, cts_saddr);
+    _server_connection = std::make_unique<CtSConnection>(sock, *this, cts_saddr);
     _server_connection->start();
 }
 

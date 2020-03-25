@@ -77,7 +77,7 @@ public:
 
     size_t hash() const override;
     
-    Object *clone() const override;
+    std::shared_ptr<Object> clone() const override;
 
     std::vector<uint8_t> serialize() const override;
 };
@@ -128,7 +128,7 @@ public:
 
     size_t hash() const override;
 
-    Object *clone() const override;
+    std::shared_ptr<Object> clone() const override;
 
     std::vector<uint8_t> serialize() const override;
 };
@@ -179,7 +179,7 @@ public:
 
     size_t hash() const override;
 
-    Object *clone() const override;
+    std::shared_ptr<Object> clone() const override;
 
     std::vector<uint8_t> serialize() const override;
 };
@@ -232,7 +232,7 @@ public:
 
     size_t hash() const override;
 
-    Object *clone() const override;
+    std::shared_ptr<Object> clone() const override;
 
     std::vector<uint8_t> serialize() const override;
 };

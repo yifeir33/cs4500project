@@ -4,11 +4,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <netinet/ip.h>
+#include <vector>
 
 #include "util/object.h"
-
-#define DATA_MAX        256
-#define PACKET_MAX_SIZE (1 + 2 + DATA_MAX) // Type + Length + DATA_MAX
 
 // types
 #define REGISTER        0x01
@@ -30,14 +28,13 @@ enum ParseResult {
 class Packet : public Object {
 public:
     uint8_t type;
-    uint16_t length;
-    uint8_t value[DATA_MAX];
+    std::vector<uint8_t> value;
 
     Packet();
 
     size_t get_size() const;
 
-    int pack(uint8_t *buffer, size_t buflen) const;
+    std::vector<uint8_t> pack() const;
 
     size_t unpack(uint8_t *buffer, size_t buflen);
 
@@ -45,5 +42,5 @@ public:
 
     bool equals(const Object* other) const override;
 
-    Object *clone() const override;
+    std::shared_ptr<Object> clone() const override;
 };

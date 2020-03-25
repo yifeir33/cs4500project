@@ -178,6 +178,6 @@ size_t Row::hash() const {
     return hash;
 }
 
-Object* Row::clone() const {
-    return new Row(*this);
+std::shared_ptr<Object> Row::clone() const {
+    return std::make_shared<Row>(*this);
 }
