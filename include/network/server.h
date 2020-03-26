@@ -6,6 +6,8 @@
 #include "network/netport.h"
 #include "network/packet.h"
 
+// singleton pattern -> also enforce that no client
+// can exist either
 class Server : public NetPort {
 protected:
     std::mutex _client_mutex;
@@ -14,14 +16,25 @@ protected:
     std::atomic<size_t> _expected_update;
     std::atomic<bool> _new_update;
 
-    void _on_clean_up(std::unique_ptr<Connection> c) override;
+    Server(const char *ip, in_port_t port);
 
-    std::unique_ptr<Connection> _new_connection(int new_conn_fd, sockaddr_in other) override;
+    Server(const Server&) = delete;
+    Server& operator=(const Server&) = delete;
+    Server(Server&&) = delete;
 
-    void _cleanup_closed();
+    void _initial() override;
+
+    void _main_loop_work() override;
+
+    void _on_new_connection() override;
+
+    void _on_clean_up(std::shared_ptr<Connection> c) override;
+
+    std::shared_ptr<Connection> _new_connection(int new_conn_fd, sockaddr_in other) override;
 
 public:
-    Server(const char *ip, in_port_t port);
+    static bool init(const char *ip, in_port_t port);
+    static std::weak_ptr<Server> get_instance();
 
     ~Server();
 

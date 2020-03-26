@@ -3,7 +3,7 @@
 #include "catch.hpp"
 
 #include "data/dataframe.h"
-#include "store/kvstore.h"
+#include "data/kvstore.h"
 
 SCENARIO("Can construct a KVStore containing a Dataframe constructed from double array"){
     GIVEN("An array of doubles and a KVStore (with key)"){
@@ -11,10 +11,10 @@ SCENARIO("Can construct a KVStore containing a Dataframe constructed from double
         double* vals = new double[SZ];
         double sum = 0;
         for (size_t i = 0; i < SZ; ++i) sum += vals[i] = i;
-        KVStore kvs;
+        KVStore& kvs = KVStore::get_instance();
         KVStore::Key k(std::string("triv"), 0);
         WHEN("A Dataframe is constructed using from array") {
-            auto df = DataFrame::from_array(kvs, k, vals, SZ);
+            auto df = DataFrame::from_array(k, vals, SZ);
             REQUIRE(df->get_double(0, 1) == 1);
             auto df2 = kvs.get(k);
             for(size_t i = 0; i < SZ; ++i) sum -= *df2->get_double(0, i);
@@ -32,10 +32,10 @@ SCENARIO("Can construct a KVStore containing a Dataframe constructed from intege
         int* vals = new int[SZ];
         int sum = 0;
         for (size_t i = 0; i < SZ; ++i) sum += vals[i] = i;
-        KVStore kvs;
+        KVStore& kvs = KVStore::get_instance();
         KVStore::Key k(std::string("triv"), 0);
         WHEN("A Dataframe is constructed using from array") {
-            auto df = DataFrame::from_array(kvs, k, vals, SZ);
+            auto df = DataFrame::from_array(k, vals, SZ);
             REQUIRE(df->get_int(0, 1) == 1);
             auto df2 = kvs.get(k);
             for(size_t i = 0; i < SZ; ++i) sum -= *df2->get_int(0, i);
@@ -53,10 +53,10 @@ SCENARIO("Can construct a KVStore containing a Dataframe constructed from boolea
         bool* vals = new bool[SZ];
         int sum = 0;
         for (size_t i = 0; i < SZ; ++i) sum += vals[i] = i;
-        KVStore kvs;
+        KVStore& kvs = KVStore::get_instance();
         KVStore::Key k(std::string("triv"), 0);
         WHEN("A Dataframe is constructed using from array") {
-            auto df = DataFrame::from_array(kvs, k, vals, SZ);
+            auto df = DataFrame::from_array(k, vals, SZ);
             REQUIRE(df->get_bool(0, 1) == true);
             auto df2 = kvs.get(k);
             for(size_t i = 0; i < SZ; ++i) sum -= *df2->get_bool(0, i);

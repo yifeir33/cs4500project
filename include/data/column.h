@@ -84,7 +84,7 @@ public:
 
 // specialization of deserialize
 template<>
-inline IntColumn Serializable::deserialize<IntColumn>(std::vector<uint8_t> data, size_t& pos) {
+inline IntColumn Serializable::deserialize<IntColumn>(const std::vector<uint8_t>& data, size_t& pos) {
     IntColumn ic;
     size_t len = Serializable::deserialize<size_t>(data, pos);
     for(size_t i = 0; i < len; ++i) {
@@ -135,7 +135,7 @@ public:
 
 // specialization of deserialize
 template<>
-inline FloatColumn Serializable::deserialize<FloatColumn>(std::vector<uint8_t> data, size_t& pos) {
+inline FloatColumn Serializable::deserialize<FloatColumn>(const std::vector<uint8_t>& data, size_t& pos) {
     FloatColumn fc;
     size_t len = Serializable::deserialize<size_t>(data, pos);
     for(size_t i = 0; i < len; ++i) {
@@ -186,7 +186,7 @@ public:
 
 // specialization of deserialize
 template<>
-inline BoolColumn Serializable::deserialize<BoolColumn>(std::vector<uint8_t> data, size_t& pos) {
+inline BoolColumn Serializable::deserialize<BoolColumn>(const std::vector<uint8_t>& data, size_t& pos) {
     BoolColumn bc;
     size_t len = Serializable::deserialize<size_t>(data, pos);
     for(size_t i = 0; i < len; ++i) {
@@ -239,7 +239,7 @@ public:
 
 // specialization of deserialize
 template<>
-inline StringColumn Serializable::deserialize<StringColumn>(std::vector<uint8_t> data, size_t& pos) {
+inline StringColumn Serializable::deserialize<StringColumn>(const std::vector<uint8_t>& data, size_t& pos) {
     StringColumn sc;
     size_t len = Serializable::deserialize<size_t>(data, pos);
     for(size_t i = 0; i < len; ++i) {

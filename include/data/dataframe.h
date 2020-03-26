@@ -11,7 +11,7 @@
 #include "data/rower.h"
 #include "data/fielder.h"
 #include "data/column.h"
-#include "store/kvstore.h"
+#include "data/kvstore.h"
 
 #define MAX_THREADS    8
 #define THREAD_ROWS    5000
@@ -83,9 +83,9 @@ private:
     };
 
 public:
-    static std::shared_ptr<DataFrame> from_array(KVStore& kvs, KVStore::Key k, int *arr, size_t arr_len);
-    static std::shared_ptr<DataFrame> from_array(KVStore& kvs, KVStore::Key k, double *arr, size_t arr_len);
-    static std::shared_ptr<DataFrame> from_array(KVStore& kvs, KVStore::Key k, bool *arr, size_t arr_len);
+    static std::shared_ptr<DataFrame> from_array(KVStore::Key k, int *arr, size_t arr_len);
+    static std::shared_ptr<DataFrame> from_array(KVStore::Key k, double *arr, size_t arr_len);
+    static std::shared_ptr<DataFrame> from_array(KVStore::Key k, bool *arr, size_t arr_len);
     // TODO: string
 
     // Creates a dataframe with an empty schema
@@ -182,7 +182,7 @@ public:
 
 // specialization of deserialize
 template<>
-inline DataFrame Serializable::deserialize<DataFrame>(std::vector<uint8_t> data, size_t& pos) {
+inline DataFrame Serializable::deserialize<DataFrame>(const std::vector<uint8_t>& data, size_t& pos) {
     Schema schema = Serializable::deserialize<Schema>(data, pos);
     size_t col_cnt = Serializable::deserialize<size_t>(data, pos);
     assert(col_cnt == schema.width());

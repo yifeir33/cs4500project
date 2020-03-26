@@ -336,7 +336,7 @@ std::vector<uint8_t> StringColumn::serialize() const {
         if(_data[i]){
             temp = Serializable::serialize(true);
             serialized.insert(serialized.end(), temp.begin(), temp.end());
-            temp = Serializable::serialize_string(*_data[i]);
+            temp = Serializable::serialize<std::string>(*_data[i]);
         } else {
             temp = Serializable::serialize(false);
         }

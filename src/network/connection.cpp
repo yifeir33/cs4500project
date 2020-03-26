@@ -45,14 +45,14 @@ bool Connection::dog_is_alive() const {
 
 bool Connection::_keep_alive() {
     Packet packet;
-    packet.type = KEEP_ALIVE;
+    packet.type = Packet::Type::KEEP_ALIVE;
     packet.value.clear();
     return this->_send_packet(packet);
 }
 
 void Connection::_send_shutdown() {
     Packet packet;
-    packet.type = SHUTDOWN;
+    packet.type = Packet::Type::SHUTDOWN;
     packet.value.clear();
     this->_send_packet(packet); // regardless we shutdown
     this->_finished = true;
@@ -78,6 +78,7 @@ bool Connection::_send_packet(Packet& packet) {
             }
         } else if(sent > 0) {
             /* p("Sent Packet!").p('\n'); */
+            this->feed_dog();
             return true;
         }
         sleep(100); // sleep 100 milliseconds
@@ -139,16 +140,16 @@ ParseResult Connection::_parse_data(Packet& packet){
     /* pln("_parse_data"); */
 
     switch(packet.type){
-        case CLIENT_UPDATE:
+        case Packet::Type::CLIENT_UPDATE:
             break;
-        case REGISTER:
+        case Packet::Type::REGISTER:
             break;
-        case KEEP_ALIVE:
+        case Packet::Type::KEEP_ALIVE:
             this->_respond(packet);
             break;
-        case ASK_FOR_ID:
+        case Packet::Type::ASK_FOR_ID:
             return ParseResult::Response;
-        case ID:
+        case Packet::Type::ID:
             {
                 if(packet.value.size() != sizeof(sockaddr_in)) {
                     return ParseResult::ParseError;
@@ -156,10 +157,10 @@ ParseResult Connection::_parse_data(Packet& packet){
                 memcpy(&this->_conn_other, packet.value.data(), packet.value.size());
                 break;
             }
-        case CHAR_MSG:
-        case ERROR_MSG:
+        case Packet::Type::CHAR_MSG:
+        case Packet::Type::ERROR_MSG:
             {
-                if(packet.type == CHAR_MSG)
+                if(packet.type == Packet::Type::CHAR_MSG)
                     pln("Message Received:");
                 else 
                     pln("Error Received:");
@@ -176,7 +177,7 @@ ParseResult Connection::_parse_data(Packet& packet){
                 /* p("\n"); */
                 break;
             }
-        case SHUTDOWN:
+        case Packet::Type::SHUTDOWN:
             pln("Shutdown Received!");
             this->_finished = true;
             break;

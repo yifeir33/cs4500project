@@ -12,14 +12,21 @@
 
 class NetPort : public Object {
 protected:
+    static std::mutex instance_lock;
+    static std::shared_ptr<NetPort> np_instance;
+
     int _sock_fd;
     sockaddr_in _self;
     std::mutex _connections_mutex;
-    std::vector<std::unique_ptr<Connection>> _connections;
+    std::vector<std::shared_ptr<Connection>> _connections;
     std::atomic<bool> _running;
     std::atomic<std::chrono::time_point<std::chrono::steady_clock>> _watchdog;
 
     NetPort(const char *ip, in_port_t port);
+
+    NetPort(const NetPort&) = delete;
+    NetPort& operator=(const NetPort&) = delete;
+    NetPort(NetPort&&) = delete;
 
     virtual ~NetPort();
 
@@ -33,7 +40,7 @@ protected:
 
     void _clean_up_closed();
 
-    virtual void _on_clean_up(std::unique_ptr<Connection> c) = 0;
+    virtual void _on_clean_up(std::shared_ptr<Connection> c) = 0;
 
     virtual void _initial() = 0;
 
@@ -41,9 +48,14 @@ protected:
 
     virtual void _on_new_connection() = 0;
 
-    virtual std::unique_ptr<Connection> _new_connection(int new_conn_fd, sockaddr_in other) = 0;
+    virtual std::shared_ptr<Connection> _new_connection(int new_conn_fd, sockaddr_in other) = 0;
 
 public:
-
     void listen_on_socket(int conn_count);
+
+    size_t hash() const override;
+
+    bool equals(const Object *other) const override;
+
+    std::shared_ptr<Object> clone() const override;
 };

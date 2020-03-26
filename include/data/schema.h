@@ -90,7 +90,7 @@ public:
 
 // specialization of deserialize
 template<>
-inline Schema Serializable::deserialize<Schema>(std::vector<uint8_t> data, size_t& pos) {
+inline Schema Serializable::deserialize<Schema>(const std::vector<uint8_t>& data, size_t& pos) {
     std::string s;
     size_t width = Serializable::deserialize<size_t>(data, pos);
     for(size_t i = 0; i < width; ++i) {

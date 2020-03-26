@@ -5,6 +5,20 @@
 #include "network/server_connection.h"
 #include "network/socket_util.h"
 
+// static methods
+bool Server::init(const char* ip, in_port_t port) {
+    std::unique_lock<std::mutex> lock(instance_lock);
+    if(NetPort::np_instance){
+        return false;
+    }
+    NetPort::np_instance = std::shared_ptr<Server>(new Server(ip, port));
+    return true;
+}
+
+std::weak_ptr<Server> Server::get_instance() {
+    std::unique_lock<std::mutex> lock(instance_lock);
+    return std::dynamic_pointer_cast<Server>(NetPort::np_instance);
+}
 
 Server::Server(const char *ip, in_port_t port) : NetPort(ip, port), _clients(10), _passed_update(0), _expected_update(0), _new_update(false) {}
 
@@ -33,7 +47,7 @@ void Server::update_and_alert(sockaddr_in saddr) {
 
 std::unique_ptr<Packet> Server::get_clients(){
     auto packet = std::make_unique<Packet>();
-    packet->type = CLIENT_UPDATE;
+    packet->type = Packet::Type::CLIENT_UPDATE;
     packet->value.clear();
 
     std::lock_guard<std::mutex> client_lock(_client_mutex);
@@ -67,10 +81,22 @@ bool Server::new_client_update() {
     return _new_update;
 }
 
-std::unique_ptr<Connection> Server::_new_connection(int new_connection_fd, sockaddr_in other){
-    return std::make_unique<ServerConnection>(new_connection_fd, other, *this);
+std::shared_ptr<Connection> Server::_new_connection(int new_connection_fd, sockaddr_in other){
+    return std::make_shared<ServerConnection>(new_connection_fd, other, *this);
 }
 
-void Server::_on_clean_up(std::unique_ptr<Connection> c) {
+void Server::_on_clean_up(std::shared_ptr<Connection> c) {
     this->remove_client(c->get_conn_other());
+}
+
+void Server::_initial() {
+    // TODO
+}
+
+void Server::_on_new_connection() {
+    // TODO
+}
+
+void Server::_main_loop_work() {
+    // TODO
 }

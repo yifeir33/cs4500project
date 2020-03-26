@@ -10,6 +10,9 @@
 #include "network/netport.h"
 #include "network/socket_util.h"
 
+std::mutex NetPort::instance_lock = std::mutex();
+std::shared_ptr<NetPort> NetPort::np_instance = nullptr;
+
 NetPort::NetPort(const char *ip, in_port_t port) : _sock_fd(0), _connections(10), _running(true), _watchdog(std::chrono::steady_clock::now()){
     if((_sock_fd = socket_util::create_socket(ip, port, _self, true)) < 0){
         assert(false);
@@ -76,10 +79,10 @@ void NetPort::_clean_up_closed() {
 
         closed_predicate(NetPort& np) : conn_owner(np) {}
 
-        bool operator()(std::unique_ptr<Connection>& c) {
+        bool operator()(const std::shared_ptr<Connection>& c) {
             if(c->is_finished()){
                 c->join();
-                conn_owner._on_clean_up(std::move(c));
+                conn_owner._on_clean_up(c);
                 return true;
             }
             return false;
@@ -110,4 +113,16 @@ void NetPort::listen_on_socket(int conn_count){
     p("Exiting").p('\n');
     close(_sock_fd);
     this->_running = false;
+}
+
+size_t NetPort::hash() const {
+    return reinterpret_cast<size_t>(this);
+}
+
+bool NetPort::equals(const Object *other) const {
+    return this == other;
+}
+
+std::shared_ptr<Object> NetPort::clone() const {
+    return nullptr;
 }

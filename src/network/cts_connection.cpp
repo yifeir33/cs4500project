@@ -40,7 +40,7 @@ void CtSConnection::register_with_server() {
 
 void CtSConnection::deregister_and_shutdown(){
     auto packet = _client.get_registration_packet();
-    packet->type = DEREGISTER;
+    packet->type = Packet::Type::DEREGISTER;
     if(!this->_send_packet(*packet)){
         p("Unable to deregister!").p('\n');
         this->_finished = true;
@@ -51,7 +51,7 @@ void CtSConnection::deregister_and_shutdown(){
 }
 
 ParseResult CtSConnection::_parse_data(Packet &packet) {
-    if(packet.type == CLIENT_UPDATE){
+    if(packet.type == Packet::Type::CLIENT_UPDATE){
         p("Client Update!").p('\n');
         // reset other clients
         std::lock_guard<std::mutex> client_lock(_client._oclient_mutex);

@@ -2,7 +2,7 @@
 
 #include "network/packet.h"
 
-Packet::Packet() : type(0), value() {}
+Packet::Packet() : type(Type::NONE), value() {}
 
 size_t Packet::get_size() const {
     return sizeof(type) + sizeof(value.size()) + value.size();
@@ -27,7 +27,7 @@ std::vector<uint8_t> Packet::pack() const {
 size_t Packet::unpack(uint8_t *buffer, size_t buflen){
     /* p("unpack, buflen: ").p(buflen).p('\n'); */
     size_t pos = 0;
-    this->type = 0;
+    this->type = Type::NONE;
     this->value.clear();
 
     // unpack type
@@ -42,7 +42,7 @@ size_t Packet::unpack(uint8_t *buffer, size_t buflen){
     // unpack length
     if(pos + sizeof(size_t) >= buflen){
         p("Too short for length!\n").p("Pos: ").p(pos).p(" BufLen: ").p(buflen).p('\n');
-        this->type = 0;
+        this->type = Type::NONE;
         return -1;
     }
     uint16_t len = 0;
@@ -52,7 +52,7 @@ size_t Packet::unpack(uint8_t *buffer, size_t buflen){
     // unpack value
     if(pos + len >= buflen){
         p("Too short for value!\n").p("Pos: ").p(pos).p(" BufLen: ").p(buflen).p('\n');
-        this->type = 0;
+        this->type = Type::NONE;
         return -1;
     }
     this->value.resize(len);

@@ -18,7 +18,7 @@ public:
     };
 
     template< typename T > 
-        static T deserialize(std::vector<uint8_t> data, size_t& pos) {
+        static T deserialize(const std::vector<uint8_t>& data, size_t& pos) {
             static_assert(std::is_fundamental_v<T>, "Must specialize this function for base class!");
 
             if(pos > data.size() || data.size() - pos < sizeof(T) - 1) throw ShortSerializedDataException();
@@ -33,29 +33,36 @@ public:
         static std::vector<uint8_t> serialize(T t) {
             static_assert(std::is_fundamental_v<T>, "Must be a primitive type to serialize!");
             std::vector<uint8_t> vec;
-            uint8_t local_buf[sizeof(T)] = {};
-            memcpy(local_buf, &t, sizeof(T));
-            for(size_t i = 0; i < sizeof(T); ++i){
-                vec.push_back(local_buf[i]);
-            }
+            uint8_t *fake_ptr = reinterpret_cast<uint8_t *>(&t);
+            vec.insert(vec.end(), fake_ptr, fake_ptr + sizeof(T));
             return vec;
         }
 
     virtual std::vector<uint8_t> serialize() const = 0;
 
-    static std::vector<uint8_t> serialize_string(std::string s) {
-        std::vector<uint8_t> vec = Serializable::serialize<size_t>(s.size());
-        for(size_t i = 0; i < s.size(); ++i){
-            std::vector<uint8_t> temp = Serializable::serialize<char>(s[i]);
-            vec.insert(vec.end(), temp.begin(), temp.end());
-        }
-        return vec;
-    }
+    /* static std::vector<uint8_t> serialize_string(const std::string& s) { */
+    /*     std::vector<uint8_t> vec = Serializable::serialize<size_t>(s.size()); */
+    /*     for(size_t i = 0; i < s.size(); ++i){ */
+    /*         std::vector<uint8_t> temp = Serializable::serialize<char>(s[i]); */
+    /*         vec.insert(vec.end(), temp.begin(), temp.end()); */
+    /*     } */
+    /*     return vec; */
+    /* } */
 };
 
-// specialize deserialze for std::string
+// specialize serialize/deserialze for std::string
 template<>
-inline std::string Serializable::deserialize<std::string>(std::vector<uint8_t> data, size_t& pos) {
+inline std::vector<uint8_t> Serializable::serialize<std::string>(std::string s){
+    std::vector<uint8_t> vec = Serializable::serialize<size_t>(s.size());
+    for(size_t i = 0; i < s.size(); ++i){
+        std::vector<uint8_t> temp = Serializable::serialize<char>(s[i]);
+        vec.insert(vec.end(), temp.begin(), temp.end());
+    }
+    return vec;
+}
+
+template<>
+inline std::string Serializable::deserialize<std::string>(const std::vector<uint8_t>& data, size_t& pos) {
     std::string s;
     size_t len = Serializable::deserialize<size_t>(data, pos);
     for(size_t i = 0; i < len; ++i) {

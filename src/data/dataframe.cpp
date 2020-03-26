@@ -3,7 +3,7 @@
 #include "data/dataframe.h"
 
 // static functions
-std::shared_ptr<DataFrame> DataFrame::from_array(KVStore& kvs, KVStore::Key k, bool *arr, size_t arr_len) {
+std::shared_ptr<DataFrame> DataFrame::from_array(KVStore::Key k, bool *arr, size_t arr_len) {
     auto df = std::make_shared<DataFrame>();
     auto col = std::make_unique<BoolColumn>();
     assert(col);
@@ -11,11 +11,11 @@ std::shared_ptr<DataFrame> DataFrame::from_array(KVStore& kvs, KVStore::Key k, b
         col->push_back(arr[i]);
     }
     df->add_column(std::move(col));
-    kvs.set(k, df);
+    KVStore::get_instance().set(k, df);
     return df;
 }
 
-std::shared_ptr<DataFrame> DataFrame::from_array(KVStore& kvs, KVStore::Key k, double *arr, size_t arr_len) {
+std::shared_ptr<DataFrame> DataFrame::from_array(KVStore::Key k, double *arr, size_t arr_len) {
     auto df = std::make_shared<DataFrame>();
     auto col = std::make_unique<FloatColumn>();
     assert(col);
@@ -23,11 +23,11 @@ std::shared_ptr<DataFrame> DataFrame::from_array(KVStore& kvs, KVStore::Key k, d
         col->push_back(arr[i]);
     }
     df->add_column(std::move(col));
-    kvs.set(k, df);
+    KVStore::get_instance().set(k, df);
     return df;
 }
 
-std::shared_ptr<DataFrame> DataFrame::from_array(KVStore& kvs, KVStore::Key k, int *arr, size_t arr_len) {
+std::shared_ptr<DataFrame> DataFrame::from_array(KVStore::Key k, int *arr, size_t arr_len) {
     auto df = std::make_shared<DataFrame>();
     auto col = std::make_unique<IntColumn>();
     assert(col);
@@ -35,7 +35,7 @@ std::shared_ptr<DataFrame> DataFrame::from_array(KVStore& kvs, KVStore::Key k, i
         col->push_back(arr[i]);
     }
     df->add_column(std::move(col));
-    kvs.set(k, df);
+    KVStore::get_instance().set(k, df);
     return df;
 }
 

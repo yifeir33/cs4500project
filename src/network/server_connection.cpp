@@ -32,7 +32,7 @@ void ServerConnection::run() {
 
 ParseResult ServerConnection::_parse_data(Packet& packet) {
     /* p("ServerConnection: parse data").p('\n'); */
-    if(packet.type == REGISTER || packet.type == DEREGISTER) {
+    if(packet.type == Packet::Type::REGISTER || packet.type == Packet::Type::DEREGISTER) {
         p("Register/Deregister").p('\n');
         if(packet.value.size() != sizeof(sockaddr_in)) {
             return ParseResult::ParseError;
@@ -40,7 +40,7 @@ ParseResult ServerConnection::_parse_data(Packet& packet) {
         sockaddr_in saddr{};
         memcpy(&saddr, packet.value.data(), packet.value.size());
 
-        if(packet.type == REGISTER){
+        if(packet.type == Packet::Type::REGISTER){
             // use this to track which client this is
             this->_conn_other = saddr;
             _server.update_and_alert(saddr);
@@ -48,7 +48,7 @@ ParseResult ServerConnection::_parse_data(Packet& packet) {
             _server.remove_client(saddr);
         }
         return ParseResult::Success;
-    } else if(packet.type == SHUTDOWN){
+    } else if(packet.type == Packet::Type::SHUTDOWN){
         this->ask_to_finish();
         return ParseResult::Success;
     }
