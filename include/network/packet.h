@@ -39,6 +39,7 @@ public:
         ID             = 0x06,
         VALUE_REQUEST  = 0x07,
         VALUE_RESPONSE = 0x08,
+        KEY_LIST       = 0x09,
         KEEP_ALIVE     = 0xFD,
         ERROR_MSG      = 0xFE,
         SHUTDOWN       = 0xFF

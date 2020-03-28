@@ -66,6 +66,7 @@ ParseResult CtSConnection::_parse_data(Packet &packet) {
                 _client._other_clients.push_back(saddr);
             }
         }
+        _client._client_update = true;
         return ParseResult::Success;
     }
     return Connection::_parse_data(packet);

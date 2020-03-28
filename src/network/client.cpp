@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <cstring>
+#include <list>
 
 #include "network/client.h"
 #include "network/socket_util.h"
@@ -93,8 +94,42 @@ void Client::_initial() {
     _server_connection->start();
 }
 
+
+void Client::_check_client_updates() {
+    if(!this->_client_update) return;
+
+    std::list<sockaddr_in> to_connect;
+    { // new scope to control scoped lock
+        std::scoped_lock lock(this->_connections_mutex, this->_oclient_mutex);
+        for(auto client : _other_clients){
+            bool existing_conn = false;
+            for(auto conn : _connections){
+                if(socket_util::sockaddr_eq(conn->get_conn_other(), client)){
+                    existing_conn = true;
+                    break;
+                }
+            }
+            if(!existing_conn) to_connect.push_front(client);
+        }
+    }
+    for(auto c : to_connect){
+        this->_connect_to_client(c);
+    }
+}
+
+void Client::_connect_to_client(sockaddr_in client){
+    sockaddr_in new_self = this->_self;
+    new_self.sin_port = 0;
+    int new_fd = socket_util::create_socket(new_self, true);
+    if(new_fd < 0) this->_running = false;
+
+    std::lock_guard<std::mutex> lock(this->_connections_mutex);
+    _connections.push_back(std::make_shared<CtCConnection>(new_fd, client, *this, false));
+    _connections.back()->start();
+}
+
 void Client::_main_loop_work() {
-    // TODO
+    this->_check_client_updates();
 }
 
 void Client::_on_clean_up(std::shared_ptr<Connection> c) {

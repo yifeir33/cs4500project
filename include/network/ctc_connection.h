@@ -41,9 +41,17 @@ protected:
 
     void _as_receiver();
 
+    void _send_keys();
+
+    ParseResult _update_keys(Packet &packet);
+
     ParseResult _parse_data(Packet& packet) override;
 
     int _respond(Packet& msg) override;
 
     void _check_requests();
+
+    ParseResult _parse_request_response(Packet &p);
+
+    Packet _get_requested_value(std::string key);
 };

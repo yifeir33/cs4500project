@@ -39,6 +39,10 @@ private:
     // blocking
     std::shared_ptr<DataFrame> _get_value_helper(std::shared_ptr<CtCConnection> c, const std::string& key);
 
+    void _connect_to_client(sockaddr_in client);
+
+    void _check_client_updates();
+
 public:
     static bool init(const char *client_ip, const char *server_ip, in_port_t server_port);
     static std::weak_ptr<Client> get_instance();

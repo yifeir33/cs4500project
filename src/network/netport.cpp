@@ -13,7 +13,7 @@
 std::mutex NetPort::instance_lock = std::mutex();
 std::shared_ptr<NetPort> NetPort::np_instance = nullptr;
 
-NetPort::NetPort(const char *ip, in_port_t port) : _sock_fd(0), _connections(10), _running(true), _watchdog(std::chrono::steady_clock::now()){
+NetPort::NetPort(const char *ip, in_port_t port) : _sock_fd(0), _connections(), _running(true), _watchdog(std::chrono::steady_clock::now()){
     if((_sock_fd = socket_util::create_socket(ip, port, _self, true)) < 0){
         assert(false);
     }

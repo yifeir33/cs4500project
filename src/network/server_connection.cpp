@@ -21,8 +21,7 @@ void ServerConnection::run() {
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        if(!this->_keep_alive())
-            break;
+        if(!this->_keep_alive()) break;
     } // while
     this->receive_and_parse();
     close(_conn_fd);

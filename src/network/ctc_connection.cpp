@@ -3,6 +3,7 @@
 
 #include "data/dataframe.h"
 #include "network/ctc_connection.h"
+#include "network/socket_util.h"
 
 CtCConnection::ValueRequest::ValueRequest(std::string k) : key(k), mutex(), cv(), value(nullptr) {}
 
@@ -41,11 +42,18 @@ void CtCConnection::_check_requests() {
 }
 
 void CtCConnection::run() {
+    if(_receiver){
+        this->_as_receiver();
+    } else {
+        this->_as_client();
+    }
+
     while(!this->is_finished() && this->dog_is_alive()){
         if(this->receive_and_parse()) {
             this->feed_dog();
             this->_client.feed_dog();
         }
+        this->_send_keys();
         this->_check_requests();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
@@ -58,51 +66,92 @@ void CtCConnection::_as_client() {
     p("As Client").p('\n');
     this->connect_to_target(this->_conn_other);
     p("Connected to target!").p('\n');
-    // TODO
-    while(!this->is_finished() && this->dog_is_alive()){
-        if(this->receive_and_parse()) this->feed_dog();
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    Packet p;
+    p.type = Packet::Type::ID;
+    if(!this->_send_packet(p)){
+        this->_finished = true;
     }
 }
 
 void CtCConnection::_as_receiver(){
     p("As Receiver").p('\n');
-    while(!this->is_finished() && this->dog_is_alive()){
-        if(this->receive_and_parse()) {
-            this->feed_dog();
-            this->_client.feed_dog();
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+}
+
+void CtCConnection::_send_keys(){
+    auto key_set = KVStore::get_instance().get_local_keys();
+
+    Packet key_packet;
+    key_packet.type = Packet::Type::KEY_LIST;
+    for(std::string key : key_set) {
+        std::vector<uint8_t> serialized = Serializable::serialize<std::string>(key);
+        key_packet.value.insert(key_packet.value.end(),
+                                serialized.begin(),
+                                serialized.end());
     }
-    this->receive_and_parse();
+
+    if(!this->_send_packet(key_packet)){
+        this->_finished = true;
+    }
 }
 
 ParseResult CtCConnection::_parse_data(Packet& packet) {
     if(packet.type == Packet::Type::VALUE_RESPONSE) {
-        // format of response: Key, Value
-        bool success = packet.value[0];
-        size_t pos = 1;
-        std::string k = Serializable::deserialize<std::string>(packet.value, pos);
-        std::shared_ptr<DataFrame> df = nullptr;
-        if(success) {
-            df = std::make_shared<DataFrame>(Serializable::deserialize<DataFrame>(packet.value, pos));
-        }
-
-        std::lock_guard<std::mutex> request_lock(_waiting_requests_mutex);
-        for(auto it = _waiting_requests.begin(); it != _waiting_requests.end(); ++it){
-            std::lock_guard<std::mutex> rlock((*it)->mutex);
-            if(k == (*it)->key) {
-                (*it)->value = df;
-                _waiting_requests.erase(it);
-                (*it)->cv.notify_all();
-                return ParseResult::Success;
-            }
-        }
-        return ParseResult::ParseError;
+        return this->_parse_request_response(packet);
     } else if(packet.type == Packet::Type::VALUE_REQUEST) {
         return ParseResult::Response;
+    } else if(packet.type == Packet::Type::KEY_LIST){
+        return this->_update_keys(packet);
     }
+
     return Connection::_parse_data(packet);
+}
+
+ParseResult CtCConnection::_parse_request_response(Packet &packet) {
+    if(packet.type != Packet::Type::VALUE_RESPONSE) return ParseResult::ParseError;
+    // format of response: Key, Value
+    bool success = packet.value[0];
+    size_t pos = 1;
+    std::string k = Serializable::deserialize<std::string>(packet.value, pos);
+    std::shared_ptr<DataFrame> df = nullptr;
+    if(success) {
+        df = std::make_shared<DataFrame>(Serializable::deserialize<DataFrame>(packet.value, pos));
+    }
+
+    std::lock_guard<std::mutex> request_lock(_waiting_requests_mutex);
+    for(auto it = _waiting_requests.begin(); it != _waiting_requests.end(); ++it){
+        std::lock_guard<std::mutex> rlock((*it)->mutex);
+        if(k == (*it)->key) {
+            (*it)->value = df;
+            _waiting_requests.erase(it);
+            (*it)->cv.notify_all();
+            return ParseResult::Success;
+        }
+    }
+    return ParseResult::ParseError;
+}
+
+ParseResult CtCConnection::_update_keys(Packet& packet){
+    if(packet.type != Packet::Type::KEY_LIST) return ParseResult::ParseError;
+    size_t pos = 0;
+    size_t other_idx = 0;
+    { // new scope for mutex guard
+        std::lock_guard<std::mutex> lock(_client._oclient_mutex);
+        for(size_t i = 0; i < _client._other_clients.size(); ++i){
+            if(socket_util::sockaddr_eq(this->get_conn_other(),
+                                        _client._other_clients[i])){
+                other_idx = i;
+                break;
+            }
+        }
+    }
+    if(other_idx == 0) return ParseResult::ParseError;
+
+    while(pos < packet.value.size()){
+        KVStore::Key key(Serializable::deserialize<std::string>(packet.value, pos),
+                         other_idx);
+        KVStore::get_instance().add_nonlocal(key);
+    }
+    return ParseResult::Success;
 }
 
 int CtCConnection::_respond(Packet& msg) {
@@ -117,20 +166,27 @@ int CtCConnection::_respond(Packet& msg) {
         size_t pos = 0;
         std::string key = Serializable::deserialize<std::string>(msg.value, pos);
 
-        auto value = KVStore::get_instance().get_local(KVStore::Key(key));
-
-        Packet response;
-        response.type = Packet::Type::VALUE_RESPONSE;
-        response.value.push_back(!!value);
-        auto serialized_key = Serializable::serialize<std::string>(key);
-        response.value.insert(response.value.end(), serialized_key.begin(), serialized_key.end());
-        if(value) {
-            auto serialized_value = value->serialize();
-            response.value.insert(response.value.end(), serialized_value.begin(), serialized_value.end());
+        Packet response = this->_get_requested_value(key);
+        if(this->_send_packet(response)){
+            return 0;
         }
-        this->_send_packet(response);
     }
     return -1;
+}
+
+Packet CtCConnection::_get_requested_value(std::string key) {
+    auto value = KVStore::get_instance().get_local(KVStore::Key(key));
+
+    Packet response;
+    response.type = Packet::Type::VALUE_RESPONSE;
+    response.value.push_back(!!value);
+    auto serialized_key = Serializable::serialize<std::string>(key);
+    response.value.insert(response.value.end(), serialized_key.begin(), serialized_key.end());
+    if(value) {
+        auto serialized_value = value->serialize();
+        response.value.insert(response.value.end(), serialized_value.begin(), serialized_value.end());
+    }
+    return response;
 }
 
 size_t CtCConnection::hash() const {

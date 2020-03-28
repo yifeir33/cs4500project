@@ -38,8 +38,6 @@ public:
 
     ~Server();
 
-    void server_listen();
-
     void update_and_alert(sockaddr_in saddr);
 
     std::unique_ptr<Packet> get_clients();

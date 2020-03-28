@@ -21,7 +21,9 @@ public:
         // note - this is not used in hashing or equality,
         // as one may not know which node the key is on,
         // so only the string is used as an identifier
-        size_t _node_idx;
+        // it is mutable because it doesn't change the hash,
+        // so can safetly be modified while in a set/map
+        mutable size_t _node_idx;
 
     public:
         Key() = default;
@@ -37,6 +39,10 @@ public:
         std::string get_name() const;
 
         size_t get_node() const;
+
+        // this is const as node_idx doesn't affect the hash
+        // so it is safe to modify in a set/map
+        void set_node(size_t idx) const; 
 
         size_t hash() const override;
 
@@ -65,7 +71,9 @@ public:
 
     void set(const Key& k, const std::shared_ptr<DataFrame>& df);
 
-    std::shared_ptr<std::unordered_set<Key, KVStore::KeyHasher>> get_keys();
+    void add_nonlocal(Key k); // TODO
+
+    std::unordered_set<std::string> get_local_keys() const;
 
     size_t hash() const override;
 

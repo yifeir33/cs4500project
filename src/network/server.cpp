@@ -20,7 +20,7 @@ std::weak_ptr<Server> Server::get_instance() {
     return std::dynamic_pointer_cast<Server>(NetPort::np_instance);
 }
 
-Server::Server(const char *ip, in_port_t port) : NetPort(ip, port), _clients(10), _passed_update(0), _expected_update(0), _new_update(false) {}
+Server::Server(const char *ip, in_port_t port) : NetPort(ip, port), _clients(), _passed_update(0), _expected_update(0), _new_update(false) {}
 
 Server::~Server() {
     std::lock_guard<std::mutex> conn_lock(_connections_mutex);
@@ -51,10 +51,12 @@ std::unique_ptr<Packet> Server::get_clients(){
     packet->value.clear();
 
     std::lock_guard<std::mutex> client_lock(_client_mutex);
-    p("Clients:\n");
+    /* p("Clients:\n"); */
     for(size_t i = 0; i < _clients.size(); ++i){
         packet->value.resize(packet->value.size() + sizeof(sockaddr_in));
-        memcpy(packet->value.data() + packet->value.size(), &_clients[i], sizeof(_clients[i]));
+        memcpy(packet->value.data() + packet->value.size(),
+               &_clients[i],
+               sizeof(_clients[i]));
     }
 
     if(++this->_passed_update >= _expected_update){

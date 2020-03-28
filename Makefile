@@ -30,11 +30,14 @@ SRC_OBJS     := $(UTIL_OBJS) $(NETWORK_OBJS) $(DATA_OBJS) $(ADAPTER_OBJS)
 CXX          := g++
 CXXFLAGS     := -Wall -Wextra -Wpedantic -g -pthread -std=c++17 -I$(INCLUDE) -I$(BOAT)/include/
 
-.PHONY: all test clean directories valgrind
+.PHONY: all server client test clean directories valgrind
 
 # Makes main binary (which isn't written right now)
-all: directories $(SRC_OBJS) $(BOAT)/lib/libsorer.a
-	echo "All Objects Built ;)"
+all: server client
+
+server: directories $(BIN)/server
+
+client: directories $(BIN)/client
 
 # Makes and executes test binary
 test: directories $(BIN)/tests
@@ -51,9 +54,25 @@ $(OBJ):
 $(BIN):
 	mkdir -p $@
 
+# server binary
+$(BIN)/server: $(SRC_OBJS) $(BOAT)/lib/libsorer.a $(OBJ)/server_main.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+# client binary
+$(BIN)/client: $(SRC_OBJS) $(BOAT)/lib/libsorer.a $(OBJ)/client_main.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
 # Test binary
 $(BIN)/tests: $(SRC_OBJS) $(TEST_OBJS) $(BOAT)/lib/libsorer.a
 	$(CXX) $(CXXFLAGS) $^ -o $@
+
+# server object
+$(OBJ)/server_main.o: $(SRC)/server_main.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# client object
+$(OBJ)/client_main.o: $(SRC)/client_main.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Util
 $(OBJ)/%.o: $(UTIL)/%.cpp

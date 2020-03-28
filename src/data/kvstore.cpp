@@ -17,6 +17,10 @@ size_t KVStore::Key::get_node() const {
     return _node_idx;
 }
 
+void KVStore::Key::set_node(size_t idx) const {
+    _node_idx = idx;
+}
+
 size_t KVStore::Key::hash() const {
     return std::hash<std::string>()(_name);
 }
@@ -108,11 +112,23 @@ void KVStore::set(const Key& k, const std::shared_ptr<DataFrame>& df){
     _local_map.insert_or_assign(k, df);
 }
 
-std::shared_ptr<std::unordered_set<KVStore::Key, KVStore::KeyHasher>> KVStore::get_keys() {
+void KVStore::add_nonlocal(Key k) {
+    std::unique_lock other_lock(_other_node_mutex);
+
+    auto it = _other_nodes.find(k);
+    if(it != _other_nodes.end()){
+        (*it).set_node(k.get_node());
+    } else {
+        _other_nodes.insert(std::move(k));
+    }
+}
+
+
+std::unordered_set<std::string> KVStore::get_local_keys() const {
+    std::unordered_set<std::string> set;
     std::shared_lock local_lock(_local_map_mutex);
-    auto set = std::make_shared<std::unordered_set<Key, KVStore::KeyHasher>>();
     for(auto kv : _local_map) {
-        set->insert(kv.first);
+        set.insert(kv.first.get_name());
     }
     return set;
 }
