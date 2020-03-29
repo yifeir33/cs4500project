@@ -64,9 +64,9 @@ void CtCConnection::run() {
 }
 
 void CtCConnection::_as_client() {
-    p("As Client").p('\n');
+    pln("As Client");
     this->connect_to_target(this->_conn_other);
-    p("Connected to target!").p('\n');
+    pln("Connected to target!");
     Packet p;
     p.type = Packet::Type::ID;
     if(!this->_send_packet(p)){
