@@ -48,8 +48,6 @@ Packet Client::get_registration_packet() {
     packet.value.insert(packet.value.end(),
                         fptr,
                         fptr + sizeof(_self));
-    /* packet.value.resize(sizeof(_self)); */
-    /* memcpy(packet.value.data(), &_self, sizeof(_self)); */
     return packet;
 }
 

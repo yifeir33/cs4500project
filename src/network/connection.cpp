@@ -128,6 +128,7 @@ bool Connection::unpack(Packet& packet){
     int parsed_pos = 0;
     bool finished = false;
     parsed_pos = packet.partial_unpack(true, _r_buffer, BUFFER_SIZE, finished);
+
     while(!finished && parsed_pos > 0){
         if(parsed_pos >= BUFFER_SIZE){
             memset(_r_buffer, 0, BUFFER_SIZE);
@@ -150,21 +151,6 @@ bool Connection::unpack(Packet& packet){
         memset(_r_buffer + _r_buf_pos, 0, BUFFER_SIZE - _r_buf_pos); // 0 out rest of buffer
     }
     return finished;
-    /* if((parsed_pos = packet.unpack(_r_buffer, BUFFER_SIZE)) == 0){ */
-    /*     pln("Attempting partial read"); */
-    /*     bool finished = false; */
-    /*     parsed_pos = packet.partial_unpack(true, _r_buffer, BUFFER_SIZE, finished); */
-    /*     while(!finished){ */
-    /*         if(parsed_pos == BUFFER_SIZE) memset(_r_buffer, 0, BUFFER_SIZE); */
-    /*         if(this->receive_data()) this->feed_dog(); */
-    /*         parsed_pos = packet.partial_unpack(false, _r_buffer, BUFFER_SIZE, finished); */
-    /*     } */
-    /*     pln("Completed Partial Read"); */
-    /* } */
-    /* memmove(_r_buffer, _r_buffer + parsed_pos, BUFFER_SIZE - parsed_pos); */
-    /* _r_buf_pos -= parsed_pos; */
-    /* memset(_r_buffer + _r_buf_pos, 0, BUFFER_SIZE - _r_buf_pos); // 0 out rest of buffer */
-    /* return true; */
 }
 
 ParseResult Connection::_parse_data(Packet& packet){
