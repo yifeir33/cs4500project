@@ -29,8 +29,8 @@ void CtSConnection::run() {
 }
 
 void CtSConnection::register_with_server() {
-    auto packet = _client.get_registration_packet();
-    if(!this->_send_packet(*packet)){
+    Packet packet = _client.get_registration_packet();
+    if(!this->_send_packet(packet)){
         p("Unable to register!");
         this->_finished = true;
     } else {
@@ -40,8 +40,8 @@ void CtSConnection::register_with_server() {
 
 void CtSConnection::deregister_and_shutdown(){
     auto packet = _client.get_registration_packet();
-    packet->type = Packet::Type::DEREGISTER;
-    if(!this->_send_packet(*packet)){
+    packet.type = Packet::Type::DEREGISTER;
+    if(!this->_send_packet(packet)){
         p("Unable to deregister!").p('\n');
         this->_finished = true;
     } else {

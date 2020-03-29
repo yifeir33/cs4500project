@@ -5,20 +5,20 @@
 #include "data/dataframe.h"
 #include "network/client.h"
 
-KVStore::Key::Key(const std::string& n, size_t i) : _name(n), _node_idx(i) {}
+KVStore::Key::Key(const std::string& n, sockaddr_in node) : _name(n), _node(node) {}
 
-KVStore::Key::Key(const std::string& n) : _name(n), _node_idx(0) {}
+KVStore::Key::Key(const std::string& n) : _name(n), _node({}) {}
 
 std::string KVStore::Key::get_name() const {
     return _name;
 }
 
-size_t KVStore::Key::get_node() const {
-    return _node_idx;
+sockaddr_in KVStore::Key::get_node() const {
+    return _node;
 }
 
-void KVStore::Key::set_node(size_t idx) const {
-    _node_idx = idx;
+void KVStore::Key::set_node(const sockaddr_in& idx) const {
+    _node = idx;
 }
 
 size_t KVStore::Key::hash() const {
@@ -35,14 +35,14 @@ bool KVStore::Key::equals(const Object *other) const {
 }
 
 std::shared_ptr<Object> KVStore::Key::clone() const {
-    return std::make_shared<KVStore::Key>(_name, _node_idx);
+    return std::make_shared<KVStore::Key>(_name, _node);
 }
 
 std::vector<uint8_t> KVStore::Key::serialize() const {
     std::vector<uint8_t> serialized;
     serialized.insert(serialized.end(),
-                      reinterpret_cast<uint8_t *>(_node_idx),
-                      reinterpret_cast<uint8_t *>(_node_idx) + sizeof(_node_idx));
+                      reinterpret_cast<uint8_t *>(&_node),
+                      reinterpret_cast<uint8_t *>(&_node) + sizeof(_node));
     std::vector<uint8_t> svec = Serializable::serialize<std::string>(_name);
     serialized.insert(serialized.end(), svec.begin(), svec.end());
     return serialized;
@@ -94,6 +94,7 @@ std::shared_ptr<DataFrame> KVStore::get(const Key& k) {
 }
 
 std::shared_ptr<DataFrame> KVStore::get_or_wait(const Key& k, time_t timeout_ms) {
+    pln("get_or_wait");
     std::shared_ptr<DataFrame> val = nullptr;
     auto timeout_dur = std::chrono::milliseconds(timeout_ms);
     auto start_time = std::chrono::steady_clock::now();

@@ -39,6 +39,46 @@ std::shared_ptr<DataFrame> DataFrame::from_array(KVStore::Key k, int *arr, size_
     return df;
 }
 
+std::shared_ptr<DataFrame> DataFrame::from_scalar(KVStore::Key k, int val){
+    auto df = std::make_shared<DataFrame>();
+    auto col = std::make_unique<IntColumn>();
+    assert(col);
+    col->push_back(val);
+    df->add_column(std::move(col));
+    KVStore::get_instance().set(k, df);
+    return df;
+}
+
+std::shared_ptr<DataFrame> DataFrame::from_scalar(KVStore::Key k, double val){
+    auto df = std::make_shared<DataFrame>();
+    auto col = std::make_unique<FloatColumn>();
+    assert(col);
+    col->push_back(val);
+    df->add_column(std::move(col));
+    KVStore::get_instance().set(k, df);
+    return df;
+}
+
+std::shared_ptr<DataFrame> DataFrame::from_scalar(KVStore::Key k, bool val){
+    auto df = std::make_shared<DataFrame>();
+    auto col = std::make_unique<BoolColumn>();
+    assert(col);
+    col->push_back(val);
+    df->add_column(std::move(col));
+    KVStore::get_instance().set(k, df);
+    return df;
+}
+
+std::shared_ptr<DataFrame> DataFrame::from_scalar(KVStore::Key k, std::string val){
+    auto df = std::make_shared<DataFrame>();
+    auto col = std::make_unique<StringColumn>();
+    assert(col);
+    col->push_back(val);
+    df->add_column(std::move(col));
+    KVStore::get_instance().set(k, df);
+    return df;
+}
+
 DataFrame::DataFrame() : _schema(std::make_unique<Schema>()) {}
 
 DataFrame::DataFrame(const DataFrame& df) : DataFrame(std::make_unique<Schema>(*df._schema)) {}

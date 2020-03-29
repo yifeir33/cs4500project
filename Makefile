@@ -28,22 +28,19 @@ ADAPTER_OBJS := $(patsubst $(ADAPTER)/%.cpp, $(OBJ)/%.o, $(ADAPTER_SRCS))
 SRC_OBJS     := $(UTIL_OBJS) $(NETWORK_OBJS) $(DATA_OBJS) $(ADAPTER_OBJS)
 
 CXX          := g++
-CXXFLAGS     := -Wall -Wextra -Wpedantic -g -pthread -std=c++17 -I$(INCLUDE) -I$(BOAT)/include/
+CXXFLAGS     := -Wall -Wextra -Wpedantic -g -O0 -pthread -std=c++17 -I$(INCLUDE) -I$(BOAT)/include/
 
-.PHONY: all server client test clean directories valgrind
+.PHONY: all demo test clean directories valgrind
 
-# Makes main binary (which isn't written right now)
-all: server client
+all: $(BIN)/demo
 
-server: directories $(BIN)/server
-
-client: directories $(BIN)/client
+demo: directories $(BIN)/demo
 
 # Makes and executes test binary
 test: directories $(BIN)/tests
-	$(BIN)/tests --success
+	$(BIN)/tests
 
-valgrind: directories $(BIN)/tests
+valgrind: directories $(BIN)/demo $(BIN)/tests
 	valgrind --leak-check=full $(BIN)/tests
 
 directories: $(OBJ) $(BIN)
@@ -54,24 +51,14 @@ $(OBJ):
 $(BIN):
 	mkdir -p $@
 
-# server binary
-$(BIN)/server: $(SRC_OBJS) $(BOAT)/lib/libsorer.a $(OBJ)/server_main.o
-	$(CXX) $(CXXFLAGS) $^ -o $@
-
-# client binary
-$(BIN)/client: $(SRC_OBJS) $(BOAT)/lib/libsorer.a $(OBJ)/client_main.o
+$(BIN)/demo: $(SRC_OBJS) $(BOAT)/lib/libsorer.a $(OBJ)/demo_main.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 # Test binary
 $(BIN)/tests: $(SRC_OBJS) $(TEST_OBJS) $(BOAT)/lib/libsorer.a
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
-# server object
-$(OBJ)/server_main.o: $(SRC)/server_main.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# client object
-$(OBJ)/client_main.o: $(SRC)/client_main.cpp
+$(OBJ)/demo_main.o: $(SRC)/demo_main.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Util

@@ -23,7 +23,7 @@ public:
         // so only the string is used as an identifier
         // it is mutable because it doesn't change the hash,
         // so can safetly be modified while in a set/map
-        mutable size_t _node_idx;
+        mutable sockaddr_in _node;
 
     public:
         Key() = default;
@@ -32,17 +32,17 @@ public:
 
         Key(Key&& other) = default;
 
-        Key(const std::string& name, size_t idx);
+        Key(const std::string& name, sockaddr_in node);
 
         Key(const std::string& name);
 
         std::string get_name() const;
 
-        size_t get_node() const;
+        sockaddr_in get_node() const;
 
         // this is const as node_idx doesn't affect the hash
         // so it is safe to modify in a set/map
-        void set_node(size_t idx) const; 
+        void set_node(const sockaddr_in& idx) const; 
 
         size_t hash() const override;
 
@@ -104,8 +104,8 @@ private:
 template<>
 inline KVStore::Key Serializable::deserialize<KVStore::Key>(const std::vector<uint8_t>& data, size_t& pos) {
     assert(data.size() - pos < sizeof(size_t));
-    size_t nidx;
-    memcpy(&nidx, data.data() + pos, sizeof(size_t));
+    sockaddr_in node;
+    memcpy(&node, data.data() + pos, sizeof(sockaddr_in));
     pos += sizeof(size_t);
-    return KVStore::Key(Serializable::deserialize<std::string>(data, pos), nidx);
+    return KVStore::Key(Serializable::deserialize<std::string>(data, pos), node);
 }

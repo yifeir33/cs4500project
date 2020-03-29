@@ -40,7 +40,7 @@ public:
 
     void update_and_alert(sockaddr_in saddr);
 
-    std::unique_ptr<Packet> get_clients();
+    Packet get_clients();
 
     void remove_client(sockaddr_in client);
 

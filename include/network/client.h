@@ -49,7 +49,7 @@ public:
 
     ~Client();
 
-    std::unique_ptr<Packet> get_registration_packet();
+    Packet get_registration_packet();
 
     // this is blocking
     std::shared_ptr<DataFrame> get_value(const KVStore::Key& key);

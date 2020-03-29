@@ -86,7 +86,11 @@ public:
     static std::shared_ptr<DataFrame> from_array(KVStore::Key k, int *arr, size_t arr_len);
     static std::shared_ptr<DataFrame> from_array(KVStore::Key k, double *arr, size_t arr_len);
     static std::shared_ptr<DataFrame> from_array(KVStore::Key k, bool *arr, size_t arr_len);
-    // TODO: string
+    // TODO: from_array string
+    static std::shared_ptr<DataFrame> from_scalar(KVStore::Key k, int val);
+    static std::shared_ptr<DataFrame> from_scalar(KVStore::Key k, double val);
+    static std::shared_ptr<DataFrame> from_scalar(KVStore::Key k, bool val);
+    static std::shared_ptr<DataFrame> from_scalar(KVStore::Key k, std::string val);
 
     // Creates a dataframe with an empty schema
     DataFrame();

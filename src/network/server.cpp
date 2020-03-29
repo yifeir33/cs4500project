@@ -45,18 +45,22 @@ void Server::update_and_alert(sockaddr_in saddr) {
     this->_new_update = true;
 }
 
-std::unique_ptr<Packet> Server::get_clients(){
-    auto packet = std::make_unique<Packet>();
-    packet->type = Packet::Type::CLIENT_UPDATE;
-    packet->value.clear();
+Packet Server::get_clients(){
+    Packet packet;
+    packet.type = Packet::Type::CLIENT_UPDATE;
+    packet.value.clear();
 
     std::lock_guard<std::mutex> client_lock(_client_mutex);
     /* p("Clients:\n"); */
     for(size_t i = 0; i < _clients.size(); ++i){
-        packet->value.resize(packet->value.size() + sizeof(sockaddr_in));
-        memcpy(packet->value.data() + packet->value.size(),
-               &_clients[i],
-               sizeof(_clients[i]));
+        uint8_t *fptr = reinterpret_cast<uint8_t *>(&_clients[i]);
+        packet.value.insert(packet.value.end(),
+                            fptr,
+                            fptr + sizeof(_clients[i]));
+        /* packet.value.resize(packet.value.size() + sizeof(sockaddr_in) + 1); */
+        /* memcpy(packet.value.data() + packet.value.size(), */
+        /*        &_clients[i], */
+        /*        sizeof(_clients[i])); */
     }
 
     if(++this->_passed_update >= _expected_update){
@@ -84,6 +88,7 @@ bool Server::new_client_update() {
 }
 
 std::shared_ptr<Connection> Server::_new_connection(int new_connection_fd, sockaddr_in other){
+    pln("New Server Connection");
     return std::make_shared<ServerConnection>(new_connection_fd, other, *this);
 }
 

@@ -41,11 +41,15 @@ Client::~Client(){
     }
 }
 
-std::unique_ptr<Packet> Client::get_registration_packet() {
-    auto packet = std::make_unique<Packet>();
-    packet->type = Packet::Type::REGISTER;
-    packet->value.resize(sizeof(_self));
-    memcpy(packet->value.data(), &_self, sizeof(_self));
+Packet Client::get_registration_packet() {
+    Packet packet;
+    packet.type = Packet::Type::REGISTER;
+    uint8_t *fptr = reinterpret_cast<uint8_t *>(&_self);
+    packet.value.insert(packet.value.end(),
+                        fptr,
+                        fptr + sizeof(_self));
+    /* packet.value.resize(sizeof(_self)); */
+    /* memcpy(packet.value.data(), &_self, sizeof(_self)); */
     return packet;
 }
 
@@ -58,15 +62,11 @@ std::shared_ptr<DataFrame> Client::_get_value_helper(std::shared_ptr<CtCConnecti
 }
 
 std::shared_ptr<DataFrame> Client::get_value(const KVStore::Key& key) {
-    std::unique_lock<std::mutex> oclient_lock(_oclient_mutex);
-    sockaddr_in client = _other_clients[key.get_node()];
-    oclient_lock.unlock();
-
     std::unique_lock<std::mutex> conn_lock(_connections_mutex);
     for(size_t i = 0; i < _connections.size(); ++i) {
         auto ctc_conn = std::dynamic_pointer_cast<CtCConnection>(_connections[i]);
         assert(ctc_conn);
-        if(socket_util::sockaddr_eq(ctc_conn->get_conn_other(), client)){
+        if(socket_util::sockaddr_eq(ctc_conn->get_conn_other(), key.get_node())){
             conn_lock.unlock();
             return this->_get_value_helper(ctc_conn, key.get_name());
         }
@@ -80,17 +80,17 @@ std::shared_ptr<Connection> Client::_new_connection(int new_conn_fd, sockaddr_in
 }
 
 void Client::_initial() {
-    sockaddr_in cts_saddr;
-    socket_util::clone_sockaddr(cts_saddr, _self);
-    cts_saddr.sin_port = 0;
+    sockaddr_in cts_self;
+    socket_util::clone_sockaddr(cts_self, _self);
+    cts_self.sin_port = 0;
 
-    int sock = socket_util::create_socket(cts_saddr, true);
+    int sock = socket_util::create_socket(cts_self, true);
     if(sock < 0){
         this->_running = false;
         return;
     }
 
-    _server_connection = std::make_unique<CtSConnection>(sock, *this, cts_saddr);
+    _server_connection = std::make_unique<CtSConnection>(sock, *this, _server);
     _server_connection->start();
 }
 

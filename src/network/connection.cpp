@@ -126,14 +126,45 @@ int Connection::receive_data() {
 
 bool Connection::unpack(Packet& packet){
     int parsed_pos = 0;
-    if((parsed_pos = packet.unpack(_r_buffer, BUFFER_SIZE)) < 0){
-        return false;
+    bool finished = false;
+    parsed_pos = packet.partial_unpack(true, _r_buffer, BUFFER_SIZE, finished);
+    while(!finished && parsed_pos > 0){
+        if(parsed_pos >= BUFFER_SIZE){
+            memset(_r_buffer, 0, BUFFER_SIZE);
+            _r_buf_pos = 0;
+        } else {
+            memmove(_r_buffer, _r_buffer + parsed_pos, BUFFER_SIZE - parsed_pos);
+            _r_buf_pos -= parsed_pos;
+            memset(_r_buffer + _r_buf_pos, 0, BUFFER_SIZE - _r_buf_pos); // 0 out rest of buffer
+        }
+        if(this->receive_data()) this->feed_dog();
+        parsed_pos = packet.partial_unpack(false, _r_buffer, BUFFER_SIZE, finished);
+    }
+
+    if(parsed_pos >= BUFFER_SIZE){
+        memset(_r_buffer, 0, BUFFER_SIZE);
+        _r_buf_pos = 0;
     } else {
         memmove(_r_buffer, _r_buffer + parsed_pos, BUFFER_SIZE - parsed_pos);
         _r_buf_pos -= parsed_pos;
         memset(_r_buffer + _r_buf_pos, 0, BUFFER_SIZE - _r_buf_pos); // 0 out rest of buffer
-        return true;
     }
+    return finished;
+    /* if((parsed_pos = packet.unpack(_r_buffer, BUFFER_SIZE)) == 0){ */
+    /*     pln("Attempting partial read"); */
+    /*     bool finished = false; */
+    /*     parsed_pos = packet.partial_unpack(true, _r_buffer, BUFFER_SIZE, finished); */
+    /*     while(!finished){ */
+    /*         if(parsed_pos == BUFFER_SIZE) memset(_r_buffer, 0, BUFFER_SIZE); */
+    /*         if(this->receive_data()) this->feed_dog(); */
+    /*         parsed_pos = packet.partial_unpack(false, _r_buffer, BUFFER_SIZE, finished); */
+    /*     } */
+    /*     pln("Completed Partial Read"); */
+    /* } */
+    /* memmove(_r_buffer, _r_buffer + parsed_pos, BUFFER_SIZE - parsed_pos); */
+    /* _r_buf_pos -= parsed_pos; */
+    /* memset(_r_buffer + _r_buf_pos, 0, BUFFER_SIZE - _r_buf_pos); // 0 out rest of buffer */
+    /* return true; */
 }
 
 ParseResult Connection::_parse_data(Packet& packet){
@@ -222,7 +253,8 @@ bool Connection::receive_and_parse() {
 void Connection::connect_to_target(sockaddr_in target){
     if(connect(_conn_fd, reinterpret_cast<sockaddr*>(&target), sizeof(target)) < 0) {
         // Needed cause the socket is non-blocking
-        if(errno == EINPROGRESS){
+        if(errno == EINPROGRESS || errno == EAGAIN){
+            std::this_thread::yield();
             fd_set fdset{0};
             FD_SET(_conn_fd, &fdset);
             if(select(_conn_fd + 1, nullptr, &fdset, nullptr, nullptr) < 0){ 
@@ -231,7 +263,7 @@ void Connection::connect_to_target(sockaddr_in target){
                 return;
             }
             if(FD_ISSET(_conn_fd, &fdset)){
-                if(this->_check_for_socket_errors()){
+                if(this->_check_for_socket_errors() != 0){
                     perror("Error in socket: ");
                     this->_finished = true;
                     return;

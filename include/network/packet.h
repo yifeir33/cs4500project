@@ -28,6 +28,9 @@ enum ParseResult {
 };
 
 class Packet : public Object {
+private:
+    size_t remaining_len;
+
 public:
     enum Type : uint8_t {
         NONE           = 0x00,
@@ -48,12 +51,16 @@ public:
     std::vector<uint8_t> value;
 
     Packet();
+    Packet(const Packet&) = default;
+    Packet(Packet&&) = default;
 
     size_t get_size() const;
 
     std::vector<uint8_t> pack() const;
 
-    size_t unpack(uint8_t *buffer, size_t buflen);
+    int unpack(uint8_t *buffer, size_t buflen);
+
+    size_t partial_unpack(bool front, uint8_t *buffer, size_t buflen, bool& finished);
 
     size_t hash() const override;
 

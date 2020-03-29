@@ -12,7 +12,7 @@ SCENARIO("Can construct a KVStore containing a Dataframe constructed from double
         double sum = 0;
         for (size_t i = 0; i < SZ; ++i) sum += vals[i] = i;
         KVStore& kvs = KVStore::get_instance();
-        KVStore::Key k(std::string("triv"), 0);
+        KVStore::Key k(std::string("triv"));
         WHEN("A Dataframe is constructed using from array") {
             auto df = DataFrame::from_array(k, vals, SZ);
             REQUIRE(df->get_double(0, 1) == 1);
@@ -33,7 +33,7 @@ SCENARIO("Can construct a KVStore containing a Dataframe constructed from intege
         int sum = 0;
         for (size_t i = 0; i < SZ; ++i) sum += vals[i] = i;
         KVStore& kvs = KVStore::get_instance();
-        KVStore::Key k(std::string("triv"), 0);
+        KVStore::Key k(std::string("triv"));
         WHEN("A Dataframe is constructed using from array") {
             auto df = DataFrame::from_array(k, vals, SZ);
             REQUIRE(df->get_int(0, 1) == 1);
@@ -54,7 +54,7 @@ SCENARIO("Can construct a KVStore containing a Dataframe constructed from boolea
         int sum = 0;
         for (size_t i = 0; i < SZ; ++i) sum += vals[i] = i;
         KVStore& kvs = KVStore::get_instance();
-        KVStore::Key k(std::string("triv"), 0);
+        KVStore::Key k(std::string("triv"));
         WHEN("A Dataframe is constructed using from array") {
             auto df = DataFrame::from_array(k, vals, SZ);
             REQUIRE(df->get_bool(0, 1) == true);

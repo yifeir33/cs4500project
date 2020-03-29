@@ -9,6 +9,7 @@
 #include "data/dataframe.h"
 #include "data/schema.h"
 #include "data/column.h"
+#include "network/packet.h"
 
 // this helper has the benefit of checking move constructors properly
 // work by switching scopes and forcing a delete of the stack allocated object
@@ -228,6 +229,33 @@ SCENARIO("We can properly serialize and deserialize objects") {
             d_df->pmap(tsr_two);
 
             REQUIRE(tsr_one.get_sum() == tsr_two.get_sum());
+        }
+    }
+}
+
+
+SCENARIO("We can partially unpack a buffer using a packet"){
+    GIVEN("Data split accross multiple too short buffers"){
+        size_t len = 12;
+        Packet::Type type = Packet::Type::CHAR_MSG;
+        uint8_t b1[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 'H', 'E', 'L', 'L'};
+        memcpy(b1, &type, sizeof(type)); // write type in
+        memcpy(b1 + 1, &len, sizeof(len)); // write len in
+        uint8_t b2[8] = {'O', ' ', 'W', 'O', 'R', 'L', 'D', '\0'};
+        THEN("We can unpack it in multiple partial unpacks"){
+            Packet packet;
+            int pos = 0;
+            bool finished = false;
+            pos = packet.partial_unpack(true, b1, 13, finished);
+            REQUIRE(pos == 13);
+            REQUIRE(!finished);
+            pos += packet.partial_unpack(false, b2, 8, finished);
+            REQUIRE(pos == 21);
+            REQUIRE(finished);
+
+            REQUIRE(packet.type == Packet::Type::CHAR_MSG);
+            REQUIRE(packet.value.size() == 12);
+            REQUIRE(strcmp((const char *)packet.value.data(), "HELLO WORLD") == 0);
         }
     }
 }

@@ -15,8 +15,8 @@ void ServerConnection::run() {
         }
         if(_server._new_update){
             p("New Update: Sending Client List").p('\n');
-            std::unique_ptr<Packet> packet = _server.get_clients();
-            if(!this->_send_packet(*packet)){
+            Packet packet = _server.get_clients();
+            if(!this->_send_packet(packet)){
                 break;
             }
         }

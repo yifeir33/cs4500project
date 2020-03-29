@@ -22,6 +22,7 @@ void CtCConnection::_check_requests() {
     while(!_request_queue.empty()){
         auto request = _request_queue.front();
         _request_queue.pop(); // remove above request from queue
+        p("_check_requests ").p("Request Found: ").pln(request->key);
 
         Packet packet;
         packet.type = Packet::Type::VALUE_REQUEST;
@@ -131,24 +132,13 @@ ParseResult CtCConnection::_parse_request_response(Packet &packet) {
 }
 
 ParseResult CtCConnection::_update_keys(Packet& packet){
+    /* pln("_update_keys"); */
     if(packet.type != Packet::Type::KEY_LIST) return ParseResult::ParseError;
     size_t pos = 0;
-    size_t other_idx = 0;
-    { // new scope for mutex guard
-        std::lock_guard<std::mutex> lock(_client._oclient_mutex);
-        for(size_t i = 0; i < _client._other_clients.size(); ++i){
-            if(socket_util::sockaddr_eq(this->get_conn_other(),
-                                        _client._other_clients[i])){
-                other_idx = i;
-                break;
-            }
-        }
-    }
-    if(other_idx == 0) return ParseResult::ParseError;
 
     while(pos < packet.value.size()){
         KVStore::Key key(Serializable::deserialize<std::string>(packet.value, pos),
-                         other_idx);
+                         this->get_conn_other());
         KVStore::get_instance().add_nonlocal(key);
     }
     return ParseResult::Success;
@@ -156,9 +146,9 @@ ParseResult CtCConnection::_update_keys(Packet& packet){
 
 int CtCConnection::_respond(Packet& msg) {
     if(msg.type == Packet::Type::ASK_FOR_ID){
-        auto packet = _client.get_registration_packet();
-        packet->type = Packet::Type::ID;
-        if(!this->_send_packet(*packet)){
+        Packet packet = _client.get_registration_packet();
+        packet.type = Packet::Type::ID;
+        if(!this->_send_packet(packet)){
             p("Failed to respond!").p('\n');
         }
         return 0;
@@ -175,6 +165,7 @@ int CtCConnection::_respond(Packet& msg) {
 }
 
 Packet CtCConnection::_get_requested_value(std::string key) {
+    p("_get_requested_value ").p("Value Requsted: ").pln(key);
     auto value = KVStore::get_instance().get_local(KVStore::Key(key));
 
     Packet response;
