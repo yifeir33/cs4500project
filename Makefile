@@ -32,16 +32,25 @@ CXXFLAGS     := -Wall -Wextra -Wpedantic -g -O3 -pthread -std=c++17 -I$(INCLUDE)
 
 .PHONY: all demo test clean directories valgrind
 
-all: $(BIN)/demo
+all: directories $(BIN)/demo
 
+# have fun killing these background proccess ;)
 demo: directories $(BIN)/demo
+	$(BIN)/demo --server > /dev/null 2>&1 & 
+	$(BIN)/demo --producer > /dev/null 2>&1 &
+	$(BIN)/demo --counter > /dev/null 2>&1 &
+	$(BIN)/demo --summarizer
 
 # Makes and executes test binary
 test: directories $(BIN)/tests
 	$(BIN)/tests
 
 valgrind: directories $(BIN)/demo $(BIN)/tests
-	valgrind --leak-check=full $(BIN)/tests
+	valgrind --leak-check=full -s $(BIN)/tests
+	valgrind --leak-check=full -s $(BIN)/demo --server &
+	valgrind --leak-check=full -s $(BIN)/demo --producer &
+	valgrind --leak-check=full -s $(BIN)/demo --counter &
+	valgrind --leak-check=full -s $(BIN)/demo --summarizer &
 
 directories: $(OBJ) $(BIN)
 
