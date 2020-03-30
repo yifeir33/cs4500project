@@ -69,9 +69,10 @@ KVStore& KVStore::get_instance() {
 
 // instance functions
 std::shared_ptr<DataFrame> KVStore::get_local(const Key& k) {
-    std::shared_lock local_lock(_local_map_mutex);
-    if(_local_map.find(k) != _local_map.end()){
-        return _local_map[k];
+    std::lock_guard<std::mutex> local_lock(_local_map_mutex);
+    auto it = _local_map.find(k);
+    if(it != _local_map.end()){
+        return std::shared_ptr<DataFrame>((*it).second);
     }
     return nullptr;
 }
@@ -80,7 +81,9 @@ std::shared_ptr<DataFrame> KVStore::get(const Key& k) {
     auto local = get_local(k);
     if(local) return local;
 
-    std::shared_lock other_lock(_other_node_mutex);
+    std::unique_lock<std::mutex> other_lock(_other_node_mutex);
+    if(_other_nodes.empty()) return nullptr;
+
     auto it = _other_nodes.find(k);
     if(it != _other_nodes.end()){
         auto real_key = Key(*it);
@@ -109,25 +112,29 @@ std::shared_ptr<DataFrame> KVStore::get_or_wait(const Key& k, time_t timeout_ms)
 }
 
 void KVStore::set(const Key& k, const std::shared_ptr<DataFrame>& df){
-    std::unique_lock local_lock(_local_map_mutex);
+    std::lock_guard<std::mutex> local_lock(_local_map_mutex);
     _local_map.insert_or_assign(k, df);
 }
 
 void KVStore::add_nonlocal(Key k) {
-    std::unique_lock other_lock(_other_node_mutex);
+    std::lock_guard<std::mutex> other_lock(_other_node_mutex);
 
-    auto it = _other_nodes.find(k);
-    if(it != _other_nodes.end()){
-        (*it).set_node(k.get_node());
-    } else {
+    if(_other_nodes.empty()){
         _other_nodes.insert(std::move(k));
+    } else {
+        auto it = _other_nodes.find(k);
+        if(it != _other_nodes.end()){
+            (*it).set_node(k.get_node());
+        } else {
+            _other_nodes.insert(std::move(k));
+        }
     }
 }
 
 
 std::unordered_set<std::string> KVStore::get_local_keys() const {
     std::unordered_set<std::string> set;
-    std::shared_lock local_lock(_local_map_mutex);
+    std::lock_guard<std::mutex> local_lock(_local_map_mutex);
     for(auto kv : _local_map) {
         set.insert(kv.first.get_name());
     }
@@ -135,7 +142,7 @@ std::unordered_set<std::string> KVStore::get_local_keys() const {
 }
 
 size_t KVStore::hash() const {
-    std::shared_lock local_lock(_local_map_mutex);
+    std::lock_guard<std::mutex> local_lock(_local_map_mutex);
     size_t hash = _local_map.size();
     for(auto kv : _local_map) {
         hash += kv.first.hash();

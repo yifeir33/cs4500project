@@ -51,6 +51,8 @@ public:
 
     Packet get_registration_packet();
 
+    void request_teardown() override;
+
     // this is blocking
     std::shared_ptr<DataFrame> get_value(const KVStore::Key& key);
 

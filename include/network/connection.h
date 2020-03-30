@@ -4,6 +4,7 @@
 #include <thread>
 #include <atomic>
 #include <netinet/ip.h>
+#include <mutex>
 
 #include "util/object.h"
 #include "network/packet.h"
@@ -14,12 +15,13 @@
 class Connection : public Object {
 private:
     std::thread _thread;
+    std::mutex _fd_mutex;
+    int _conn_fd;
     // delete copy constructors
     Connection(const Connection& c) = delete;
     Connection& operator=(const Connection& c) = delete;
 
 protected:
-    int _conn_fd;
     sockaddr_in _conn_other;
     std::atomic<bool> _finished;
     size_t _r_buf_pos;
@@ -64,6 +66,8 @@ public:
     void connect_to_target(sockaddr_in target);
 
     void ask_to_finish();
+
+    void send_teardown_request();
 
     bool is_finished();
 

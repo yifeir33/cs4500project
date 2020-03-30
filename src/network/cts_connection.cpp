@@ -14,7 +14,9 @@ void CtSConnection::run() {
     p("CTS Run").p('\n');
 
     this->connect_to_target(this->_conn_other);
+    pln("Connected");
     this->register_with_server();
+    pln("Registered");
 
     while(!this->is_finished() && this->dog_is_alive()) {
         if(this->receive_and_parse()) this->feed_dog();
@@ -22,10 +24,13 @@ void CtSConnection::run() {
             break;
 
         _client.feed_dog();
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        /* std::this_thread::sleep_for(std::chrono::milliseconds(500)); */
+        std::this_thread::yield();
     }
     this->deregister_and_shutdown();
     this->_finished = true;
+    // no server - client should shut down
+    _client._running = false;
 }
 
 void CtSConnection::register_with_server() {
@@ -68,7 +73,10 @@ ParseResult CtSConnection::_parse_data(Packet &packet) {
         }
         _client._client_update = true;
         return ParseResult::Success;
+    } else if(packet.type == Packet::Type::TEARDOWN){
+        _client._running = false;
+        /* this->ask_to_finish(); */
+        return ParseResult::Success;
     }
     return Connection::_parse_data(packet);
 }
-

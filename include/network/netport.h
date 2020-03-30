@@ -11,11 +11,14 @@
 #define WATCHDOG_TIMEOUT  60 // seconds
 
 class NetPort : public Object {
+private:
+    std::mutex _fd_mutex;
+    int _sock_fd;
+
 protected:
     static std::mutex instance_lock;
     static std::shared_ptr<NetPort> np_instance;
 
-    int _sock_fd;
     sockaddr_in _self;
     std::mutex _connections_mutex;
     std::vector<std::shared_ptr<Connection>> _connections;
@@ -52,6 +55,8 @@ protected:
 
 public:
     void listen_on_socket(int conn_count);
+
+    virtual void request_teardown() = 0;
 
     size_t hash() const override;
 

@@ -8,6 +8,7 @@ ServerConnection::ServerConnection(int cfd, sockaddr_in caddr, Server& s) : Conn
 ServerConnection::~ServerConnection(){}
 
 void ServerConnection::run() {
+    pln("ServerConnection Started!");
     while(!this->is_finished() && this->dog_is_alive()){
         if(this->receive_and_parse()){
             this->feed_dog();
@@ -20,12 +21,12 @@ void ServerConnection::run() {
                 break;
             }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        /* std::this_thread::sleep_for(std::chrono::milliseconds(500)); */
         if(!this->_keep_alive()) break;
+        std::this_thread::yield();
     } // while
     this->receive_and_parse();
-    close(_conn_fd);
-    _conn_fd = 0;
+    pln("ServerConnection Finished");
     this->_finished = true;
 }
 
@@ -48,6 +49,11 @@ ParseResult ServerConnection::_parse_data(Packet& packet) {
         }
         return ParseResult::Success;
     } else if(packet.type == Packet::Type::SHUTDOWN){
+        this->ask_to_finish();
+        return ParseResult::Success;
+    } else if(packet.type == Packet::Type::TEARDOWN){
+        pln("Teardown request received");
+        _server.request_teardown();
         this->ask_to_finish();
         return ParseResult::Success;
     }

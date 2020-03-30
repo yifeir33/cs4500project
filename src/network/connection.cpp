@@ -9,16 +9,19 @@
 #include "network/socket_util.h"
 #include "network/connection.h"
 
-Connection::Connection(int cfd, sockaddr_in c) : _conn_fd(cfd), _conn_other(c),
+Connection::Connection(int cfd, sockaddr_in c) : _fd_mutex(), _conn_fd(cfd), _conn_other(c),
 _finished(false), _r_buf_pos(0), _watchdog(std::chrono::steady_clock::now()) {
     memset(_r_buffer, 0, BUFFER_SIZE);
     /* p("New Connection!\n"); */
+    std::lock_guard<std::mutex> fd_lock(_fd_mutex);
     socket_util::make_non_blocking(_conn_fd);
 }
 
 Connection::~Connection() {
     if(_conn_fd > 0){
+        std::lock_guard<std::mutex> fd_lock(_fd_mutex);
         close(_conn_fd);
+        _conn_fd = -1;
     }
 }
 
@@ -27,7 +30,11 @@ void Connection::start() {
 }
 
 void Connection::join() {
-    _thread.join();
+    if(_thread.joinable()){
+        _thread.join();
+    } else {
+        pln("Bad Join Call!");
+    }
 }
 
 void Connection::feed_dog(){
@@ -38,7 +45,7 @@ bool Connection::dog_is_alive() const {
     bool out =  std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - _watchdog).count()
                 < WATCHDOG_TIMEOUT;
     if(!out){
-        this->pln("Watchdog Timed Out!");
+        this->pln("Watchdog Timed Out! (Connection)");
     }
     return out;
 }
@@ -63,7 +70,9 @@ bool Connection::_send_packet(Packet& packet) {
     int attempt = 0;
     ssize_t sent = 0;
 
+    std::unique_lock<std::mutex> fd_lock(_fd_mutex);
     while(attempt < 5){
+        fd_lock.unlock();
         if(this->_check_for_socket_errors() > 0){
             if(errno != EWOULDBLOCK && errno != EAGAIN && errno != 0) {
                 perror("Socket Errors Found: ");
@@ -71,17 +80,19 @@ bool Connection::_send_packet(Packet& packet) {
                 return false;
             }
         }
+        fd_lock.lock();
+
         if((sent = send(_conn_fd, packed.data(), packed.size(), 0)) < 0){
             if(errno != EWOULDBLOCK && errno != EAGAIN) {
                 perror("Error sending packet: ");
                 return false;
             }
         } else if(sent > 0) {
-            /* p("Sent Packet!").p('\n'); */
             this->feed_dog();
             return true;
         }
-        sleep(100); // sleep 100 milliseconds
+        std::this_thread::yield();
+        /* sleep(100); // sleep 100 milliseconds */
         ++attempt;
     }
     return false;
@@ -94,6 +105,7 @@ sockaddr_in Connection::get_conn_other() const {
 int Connection::_check_for_socket_errors() {
     int opt = 0;
     socklen_t optlen = sizeof(opt);
+    std::lock_guard<std::mutex> fd_lock(_fd_mutex);
     if(getsockopt(_conn_fd, SOL_SOCKET, SO_ERROR, &opt, &optlen) < 0){
         if(errno != EWOULDBLOCK && errno != EAGAIN && errno != 0) {
             perror("Error checking socket: ");
@@ -107,6 +119,7 @@ int Connection::_check_for_socket_errors() {
 int Connection::receive_data() {
     int received = 0;
     int attempt = 0;
+    std::lock_guard<std::mutex> fd_lock(_fd_mutex);
 
     while (attempt < 5) {
         if((received = recv(_conn_fd, _r_buffer + _r_buf_pos, BUFFER_SIZE - _r_buf_pos, 0)) < 0) {
@@ -114,6 +127,7 @@ int Connection::receive_data() {
                 perror("Error receiving data: ");
                 return received;
             }
+            std::this_thread::yield();
         } else {
             /* p("Received: ").pln(received); */
             _r_buf_pos += received;
@@ -187,16 +201,12 @@ ParseResult Connection::_parse_data(Packet& packet){
                     msg += packet.value[i];
                 }
                 pln(msg);
-                /* p("Sender:\n"); */
-                /* char addr_str[INET_ADDRSTRLEN]; */
-                /* p(inet_ntop(AF_INET, &(_conn_other->addr.sin_addr), addr_str, INET_ADDRSTRLEN)); */
-                /* p(":").p(ntohs((_conn_other->addr.sin_port))); */
-                /* p("\n"); */
                 break;
             }
         case Packet::Type::SHUTDOWN:
-            pln("Shutdown Received!");
-            this->_finished = true;
+        case Packet::Type::TEARDOWN:
+            pln("Shutdown/Teardown Received!");
+            this->ask_to_finish();
             break;
         default:
             p("Unrecognized Type: ").pln(packet.type);
@@ -237,6 +247,8 @@ bool Connection::receive_and_parse() {
 }
 
 void Connection::connect_to_target(sockaddr_in target){
+    std::unique_lock<std::mutex> fd_lock(_fd_mutex);
+
     if(connect(_conn_fd, reinterpret_cast<sockaddr*>(&target), sizeof(target)) < 0) {
         // Needed cause the socket is non-blocking
         if(errno == EINPROGRESS || errno == EAGAIN){
@@ -249,6 +261,7 @@ void Connection::connect_to_target(sockaddr_in target){
                 return;
             }
             if(FD_ISSET(_conn_fd, &fdset)){
+                fd_lock.unlock();
                 if(this->_check_for_socket_errors() != 0){
                     perror("Error in socket: ");
                     this->_finished = true;
@@ -261,11 +274,22 @@ void Connection::connect_to_target(sockaddr_in target){
             return;
         }
     }
+    pln("Connected - function returning");
 }
 
 
 void Connection::ask_to_finish(){
     this->_finished = true;
+}
+
+void Connection::send_teardown_request() {
+    pln("send_teardown_request");
+    Packet packet;
+    packet.type = Packet::Type::TEARDOWN;
+    packet.value.clear();
+    if(!this->_send_packet(packet)){
+        this->_finished = true;
+    }
 }
 
 bool Connection::is_finished(){

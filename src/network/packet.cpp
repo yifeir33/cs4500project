@@ -71,7 +71,7 @@ size_t Packet::partial_unpack(bool front, uint8_t *buffer, size_t buflen, bool& 
         remaining_len = 0;
         // unpack type
         if(pos + sizeof(type) > buflen){
-            p("Too short for type!\n").p("Pos: ").p(pos).p(" BufLen: ").p(buflen).p('\n');
+            /* p("Too short for type!\n").p("Pos: ").p(pos).p(" BufLen: ").p(buflen).p('\n'); */
             p(sizeof(type)).p('\n');
             return pos;
         } else {
@@ -81,7 +81,7 @@ size_t Packet::partial_unpack(bool front, uint8_t *buffer, size_t buflen, bool& 
 
         // unpack length
         if(pos + sizeof(remaining_len) > buflen){
-            p("Too short for length!\n").p("Pos: ").p(pos).p(" BufLen: ").p(buflen).p('\n');
+            /* p("Too short for length!\n").p("Pos: ").p(pos).p(" BufLen: ").p(buflen).p('\n'); */
             this->type = Type::NONE;
             return pos;
         } else {
@@ -92,15 +92,15 @@ size_t Packet::partial_unpack(bool front, uint8_t *buffer, size_t buflen, bool& 
     
     // unpack value
     if(pos + remaining_len > buflen){
-        p("Too short for value!\n").p("Remaining Len: ").p(remaining_len).p(" Pos: ").p(pos).p(" BufLen: ").p(buflen).p('\n');
+        /* p("Too short for value!\n").p("Remaining Len: ").p(remaining_len).p(" Pos: ").p(pos).p(" BufLen: ").p(buflen).p('\n'); */
         // read in as much as we can
         size_t to_read = buflen - pos;
-        p("To Read: ").pln(to_read);
+        /* p("To Read: ").pln(to_read); */
         this->value.insert(this->value.end(), buffer + pos, buffer + pos + to_read);
-        pln("Read Complete");
+        /* pln("Read Complete"); */
         pos += to_read;
         remaining_len -= to_read;
-        p("Remaining: ").pln(remaining_len);
+        /* p("Remaining: ").pln(remaining_len); */
     } else {
         this->value.insert(this->value.end(), buffer + pos, buffer + pos + remaining_len);
         pos += remaining_len;

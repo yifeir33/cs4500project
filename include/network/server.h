@@ -46,5 +46,7 @@ public:
 
     bool new_client_update();
 
+    void request_teardown() override;
+
     friend class ServerConnection;
 };

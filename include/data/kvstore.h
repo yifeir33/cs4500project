@@ -93,9 +93,9 @@ private:
     // store single instance of class
     static KVStore kv_instance;
 
-    mutable std::shared_mutex _local_map_mutex;
+    mutable std::mutex _local_map_mutex;
     std::unordered_map<Key, std::shared_ptr<DataFrame>, KeyHasher> _local_map;
-    mutable std::shared_mutex _other_node_mutex;
+    mutable std::mutex _other_node_mutex;
     std::unordered_set<Key, KeyHasher> _other_nodes;
 };
 

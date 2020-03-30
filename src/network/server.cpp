@@ -22,14 +22,7 @@ std::weak_ptr<Server> Server::get_instance() {
 
 Server::Server(const char *ip, in_port_t port) : NetPort(ip, port), _clients(), _passed_update(0), _expected_update(0), _new_update(false) {}
 
-Server::~Server() {
-    std::lock_guard<std::mutex> conn_lock(_connections_mutex);
-    for(size_t i = 0; i < _connections.size(); ++i) {
-        _connections[i]->ask_to_finish();
-        _connections[i]->join();
-    }
-    _connections.clear();
-}
+Server::~Server() {}
 
 void Server::update_and_alert(sockaddr_in saddr) {
     // update
@@ -57,10 +50,6 @@ Packet Server::get_clients(){
         packet.value.insert(packet.value.end(),
                             fptr,
                             fptr + sizeof(_clients[i]));
-        /* packet.value.resize(packet.value.size() + sizeof(sockaddr_in) + 1); */
-        /* memcpy(packet.value.data() + packet.value.size(), */
-        /*        &_clients[i], */
-        /*        sizeof(_clients[i])); */
     }
 
     if(++this->_passed_update >= _expected_update){
@@ -85,6 +74,18 @@ void Server::remove_client(sockaddr_in client) {
 
 bool Server::new_client_update() {
     return _new_update;
+}
+
+void Server::request_teardown() {
+    pln("request_teardown");
+    std::lock_guard<std::mutex> conn_lock(this->_connections_mutex);
+    pln("_connections lock aquired - teardown");
+    for(auto conn : _connections){
+        conn->send_teardown_request();
+    }
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    this->_running = false;
+    pln("Tear down requested - shutting down");
 }
 
 std::shared_ptr<Connection> Server::_new_connection(int new_connection_fd, sockaddr_in other){

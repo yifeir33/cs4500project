@@ -8,19 +8,6 @@
 
 #include "util/object.h"
 
-// types
-/* #define REGISTER        0x01 */
-/* #define DEREGISTER      0x02 */
-/* #define CLIENT_UPDATE   0x03 */
-/* #define CHAR_MSG        0x04 */
-/* #define ASK_FOR_ID      0x05 */
-/* #define ID              0x06 */
-/* #define */ 
-/* #define KEEP_ALIVE      0xFD */
-/* #define ERROR_MSG       0xFE */
-/* #define SHUTDOWN        0xFF */
-
-
 enum ParseResult {
     ParseError = -1,
     Success = 0,
@@ -43,9 +30,10 @@ public:
         VALUE_REQUEST  = 0x07,
         VALUE_RESPONSE = 0x08,
         KEY_LIST       = 0x09,
-        KEEP_ALIVE     = 0xFD,
-        ERROR_MSG      = 0xFE,
-        SHUTDOWN       = 0xFF
+        KEEP_ALIVE     = 0xFC,
+        ERROR_MSG      = 0xFD,
+        SHUTDOWN       = 0xFE,
+        TEARDOWN       = 0XFF
     };
     Type type;
     std::vector<uint8_t> value;

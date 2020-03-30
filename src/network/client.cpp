@@ -51,6 +51,11 @@ Packet Client::get_registration_packet() {
     return packet;
 }
 
+void Client::request_teardown() {
+    this->_server_connection->send_teardown_request();
+    pln("Sent Teardown");
+}
+
 std::shared_ptr<DataFrame> Client::_get_value_helper(std::shared_ptr<CtCConnection> c, const std::string& key) {
     auto request = std::make_shared<CtCConnection::ValueRequest>(key);
     std::unique_lock<std::mutex> lk(request->mutex);

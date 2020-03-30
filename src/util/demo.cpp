@@ -49,8 +49,10 @@ void Demo::_producer() {
 
     double sum = 0;
     for(size_t i = 0; i < SZ; ++i) sum += (vals[i] = i);
+    std::cout <<"Sum: " <<sum <<std::endl;
 
-    DataFrame::from_array(KVStore::Key("main"), vals, SZ);
+    auto df = DataFrame::from_array(KVStore::Key("main"), vals, SZ);
+    std::cout <<"(100, 0): " <<*df->get_double(0, 100) <<std::endl;
     DataFrame::from_scalar(KVStore::Key("check"), sum);
 }
 
@@ -59,22 +61,27 @@ void Demo::_counter() {
     std::shared_ptr<DataFrame> df = KVStore::get_instance().get_or_wait(KVStore::Key("main"),
                                                                         1000 * 60); // 1 minute timeout
     if(!df) std::cout <<"get_or_wait timeout" <<std::endl;
+    std::cout <<"(100, 0): " <<*df->get_double(0, 100) <<std::endl;
     SumRower sr;
     df->pmap(sr);
     DataFrame::from_scalar(KVStore::Key("verify"), sr._sum);
+    std::cout <<"Counter Sum: " <<sr._sum <<std::endl;
 }
 
 void Demo::_summarizer() {
     std::cout << "Summarizer" <<std::endl;
-    std::shared_ptr<DataFrame> result = KVStore::get_instance().get_or_wait(KVStore::Key("main"),
+    std::shared_ptr<DataFrame> result = KVStore::get_instance().get_or_wait(KVStore::Key("verify"),
                                                                             1000 * 60); // 1 minute timeout
     if(!result) std::cout <<"get_or_wait timeout" <<std::endl;
-    std::shared_ptr<DataFrame> expected = KVStore::get_instance().get_or_wait(KVStore::Key("main"),
+    std::shared_ptr<DataFrame> expected = KVStore::get_instance().get_or_wait(KVStore::Key("check"),
                                                                               1000 * 60); // 1 minute timeout
     if(!expected) std::cout <<"get_or_wait timeout" <<std::endl;
 
     std::cout<<"Demo Result:" <<std::endl;
+    std::cout<<"Expected: " <<*expected->get_double(0, 0) <<std::endl;
+    std::cout<<"Actual: " <<*result->get_double(0, 0) <<std::endl;
     std::cout <<(*expected->get_double(0, 0) - *result->get_double(0, 0) < 0.001 ? "Success" : "Failure") <<std::endl;
+    Client::get_instance().lock()->request_teardown();
 }
 
 void Demo::_run() {

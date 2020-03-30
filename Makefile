@@ -28,7 +28,7 @@ ADAPTER_OBJS := $(patsubst $(ADAPTER)/%.cpp, $(OBJ)/%.o, $(ADAPTER_SRCS))
 SRC_OBJS     := $(UTIL_OBJS) $(NETWORK_OBJS) $(DATA_OBJS) $(ADAPTER_OBJS)
 
 CXX          := g++
-CXXFLAGS     := -Wall -Wextra -Wpedantic -g -O0 -pthread -std=c++17 -I$(INCLUDE) -I$(BOAT)/include/
+CXXFLAGS     := -Wall -Wextra -Wpedantic -g -O3 -pthread -std=c++17 -I$(INCLUDE) -I$(BOAT)/include/
 
 .PHONY: all demo test clean directories valgrind
 
