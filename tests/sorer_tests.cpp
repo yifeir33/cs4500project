@@ -7,7 +7,7 @@ SCENARIO("Can use Sorer library to construct dataframe"){
     GIVEN("A SOR file with a \'BIS\' Schema and 3 Rows"){
         THEN("We can construct a dataframe from it"){
             // TODO: change path
-            std::string fn("/home/neil/school/software_development/cs4500project/tests/basic.sor");
+            std::string fn("tests/basic.sor");
             auto df = SorerDataframeAdapter::parse_file(fn);
             REQUIRE(df);
 
