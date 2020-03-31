@@ -6,6 +6,7 @@
 #include <exception>
 #include <string>
 #include <cstring>
+#include <cassert>
 
 #include "util/object.h"
 
@@ -21,7 +22,7 @@ public:
         static T deserialize(const std::vector<uint8_t>& data, size_t& pos) {
             static_assert(std::is_fundamental_v<T>, "Must specialize this function for base class!");
 
-            if(pos > data.size() || data.size() - pos < sizeof(T) - 1) throw ShortSerializedDataException();
+            if(pos > data.size() || data.size() - pos < sizeof(T)) throw ShortSerializedDataException();
 
             T val;
             memcpy(&val, data.data() + pos, sizeof(T));
@@ -69,4 +70,48 @@ inline std::string Serializable::deserialize<std::string>(const std::vector<uint
         s += Serializable::deserialize<char>(data, pos);
     }
     return s;
+}
+
+// specialize serialize/deserialize for std::vector<bool> (bitmap)
+template<>
+inline std::vector<uint8_t> Serializable::serialize<std::vector<bool>>(std::vector<bool> vb){
+    std::vector<uint8_t> vec = Serializable::serialize<size_t>(vb.size());
+
+    uint8_t byte = 0;
+    size_t pos = 0;
+    for(size_t i = 0; i < vb.size(); ++i){
+        if(pos == 8){
+            vec.push_back(byte);
+            byte = vb[i] & 1;
+            pos = 1;
+        } else {
+            byte |= (vb[i] & 1) << (pos++);
+        }
+    }
+    if(pos > 0) vec.push_back(byte);
+
+    return vec;
+}
+
+template<>
+inline std::vector<bool> Serializable::deserialize<std::vector<bool>>(const std::vector<uint8_t>& data, size_t& pos) {
+    std::vector<bool> vec;
+
+    size_t len = Serializable::deserialize<size_t>(data, pos);
+    size_t byte_cnt = len / 8 + (len % 8 > 0 ? 1 : 0);
+    size_t byte_bound = byte_cnt + pos;
+     
+    size_t inner_pos = 0;
+    size_t data_pos = 0;
+    while(pos < byte_bound && data_pos < len) {
+        assert(pos < data.size());
+        vec.push_back(data[pos] & (1 << inner_pos++));
+        if(inner_pos == 8){
+            inner_pos = 0;
+            ++pos;
+        }
+        ++data_pos;
+    }
+    if(inner_pos != 0) ++pos;
+    return vec;
 }

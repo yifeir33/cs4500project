@@ -7,6 +7,7 @@
 #include <optional>
 
 #include "util/serializable.h"
+#include "data/nullable_array.h"
 
 // Forward Declarations for Column
 class IntColumn;
@@ -53,7 +54,8 @@ public:
  */
 class IntColumn : public Column {
 private:
-    std::vector<std::optional<int>> _data;
+    NullableArray<int> _data;
+    /* std::vector<std::optional<int>> _data; */
 
 public:
     IntColumn() = default;
@@ -85,17 +87,23 @@ public:
 // specialization of deserialize
 template<>
 inline IntColumn Serializable::deserialize<IntColumn>(const std::vector<uint8_t>& data, size_t& pos) {
+    auto na = NullableArray<int>::deserialize(data, pos);
     IntColumn ic;
-    size_t len = Serializable::deserialize<size_t>(data, pos);
-    for(size_t i = 0; i < len; ++i) {
-        bool exists = Serializable::deserialize<bool>(data, pos);
-        if(exists) {
-            ic.push_back(Serializable::deserialize<int>(data, pos));
-        } else {
-            ic.push_back(std::nullopt);
-        }
+    for(size_t i = 0; i < na.size(); ++i){
+        ic.push_back(na.get(i));
     }
     return ic;
+    /* IntColumn ic; */
+    /* size_t len = Serializable::deserialize<size_t>(data, pos); */
+    /* for(size_t i = 0; i < len; ++i) { */
+    /*     bool exists = Serializable::deserialize<bool>(data, pos); */
+    /*     if(exists) { */
+    /*         ic.push_back(Serializable::deserialize<int>(data, pos)); */
+    /*     } else { */
+    /*         ic.push_back(std::nullopt); */
+    /*     } */
+    /* } */
+    /* return ic; */
 }
  
 /*************************************************************************
@@ -104,7 +112,8 @@ inline IntColumn Serializable::deserialize<IntColumn>(const std::vector<uint8_t>
  */
 class FloatColumn : public Column {
 private:
-    std::vector<std::optional<double>> _data;
+    NullableArray<double> _data;
+    /* std::vector<std::optional<double>> _data; */
 
 public:
     FloatColumn() = default;
@@ -136,17 +145,23 @@ public:
 // specialization of deserialize
 template<>
 inline FloatColumn Serializable::deserialize<FloatColumn>(const std::vector<uint8_t>& data, size_t& pos) {
+    auto na = NullableArray<double>::deserialize(data, pos);
     FloatColumn fc;
-    size_t len = Serializable::deserialize<size_t>(data, pos);
-    for(size_t i = 0; i < len; ++i) {
-        bool exists = Serializable::deserialize<bool>(data, pos);
-        if(exists) {
-            fc.push_back(Serializable::deserialize<double>(data, pos));
-        } else {
-            fc.push_back(std::nullopt);
-        }
+    for(size_t i = 0; i < na.size(); ++i){
+        fc.push_back(na.get(i));
     }
     return fc;
+    /* FloatColumn fc; */
+    /* size_t len = Serializable::deserialize<size_t>(data, pos); */
+    /* for(size_t i = 0; i < len; ++i) { */
+    /*     bool exists = Serializable::deserialize<bool>(data, pos); */
+    /*     if(exists) { */
+    /*         fc.push_back(Serializable::deserialize<double>(data, pos)); */
+    /*     } else { */
+    /*         fc.push_back(std::nullopt); */
+    /*     } */
+    /* } */
+    /* return fc; */
 }
 
 /*************************************************************************
@@ -155,7 +170,8 @@ inline FloatColumn Serializable::deserialize<FloatColumn>(const std::vector<uint
  */
 class BoolColumn : public Column {
 private:
-    std::vector<std::optional<bool>> _data;
+    NullableArray<bool> _data;
+    /* std::vector<std::optional<bool>> _data; */
 
 public:
     BoolColumn() = default;
@@ -187,17 +203,23 @@ public:
 // specialization of deserialize
 template<>
 inline BoolColumn Serializable::deserialize<BoolColumn>(const std::vector<uint8_t>& data, size_t& pos) {
+    auto na = NullableArray<bool>::deserialize(data, pos);
     BoolColumn bc;
-    size_t len = Serializable::deserialize<size_t>(data, pos);
-    for(size_t i = 0; i < len; ++i) {
-        bool exists = Serializable::deserialize<bool>(data, pos);
-        if(exists) {
-            bc.push_back(Serializable::deserialize<bool>(data, pos));
-        } else {
-            bc.push_back(std::nullopt);
-        }
+    for(size_t i = 0; i < na.size(); ++i){
+        bc.push_back(na.get(i));
     }
     return bc;
+    /* BoolColumn bc; */
+    /* size_t len = Serializable::deserialize<size_t>(data, pos); */
+    /* for(size_t i = 0; i < len; ++i) { */
+    /*     bool exists = Serializable::deserialize<bool>(data, pos); */
+    /*     if(exists) { */
+    /*         bc.push_back(Serializable::deserialize<bool>(data, pos)); */
+    /*     } else { */
+    /*         bc.push_back(std::nullopt); */
+    /*     } */
+    /* } */
+    /* return bc; */
 }
  
 /*************************************************************************
@@ -207,7 +229,8 @@ inline BoolColumn Serializable::deserialize<BoolColumn>(const std::vector<uint8_
  */
 class StringColumn : public Column {
 private:
-    std::vector<std::optional<std::string>> _data;
+    NullableArray<std::string> _data;
+    /* std::vector<std::optional<std::string>> _data; */
 
 public:
     StringColumn() = default;
@@ -240,16 +263,21 @@ public:
 // specialization of deserialize
 template<>
 inline StringColumn Serializable::deserialize<StringColumn>(const std::vector<uint8_t>& data, size_t& pos) {
+    auto na = NullableArray<std::string>::deserialize(data, pos);
     StringColumn sc;
-    size_t len = Serializable::deserialize<size_t>(data, pos);
-    for(size_t i = 0; i < len; ++i) {
-        bool exists = Serializable::deserialize<bool>(data, pos);
-        if(exists) {
-            sc.push_back(Serializable::deserialize<std::string>(data, pos));
-        } else {
-            sc.push_back(std::nullopt);
-        }
+    for(size_t i = 0; i < na.size(); ++i){
+        sc.push_back(na.get(i));
     }
     return sc;
-
+    /* StringColumn sc; */
+    /* size_t len = Serializable::deserialize<size_t>(data, pos); */
+    /* for(size_t i = 0; i < len; ++i) { */
+    /*     bool exists = Serializable::deserialize<bool>(data, pos); */
+    /*     if(exists) { */
+    /*         sc.push_back(Serializable::deserialize<std::string>(data, pos)); */
+    /*     } else { */
+    /*         sc.push_back(std::nullopt); */
+    /*     } */
+    /* } */
+    /* return sc; */
 }

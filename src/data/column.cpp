@@ -36,7 +36,7 @@ void IntColumn::push_back(std::optional<int> val) {
 }
 
 std::optional<int> IntColumn::get(size_t idx) const {
-  return _data[idx];
+  return _data.get(idx);
 }
 
 IntColumn* IntColumn::as_int() {
@@ -45,9 +45,7 @@ IntColumn* IntColumn::as_int() {
 
 /** Set value at idx. An out of bound idx is undefined.  */
 std::optional<int> IntColumn::set(size_t idx, std::optional<int> val) {
-    auto old = _data[idx];
-    _data[idx] = val;
-    return old;
+    return _data.set(idx, val);
 }
 
 size_t IntColumn::size() const {
@@ -68,11 +66,8 @@ bool IntColumn::equals(const Object *other) const {
 }
 
 size_t IntColumn::hash() const {
-    size_t hash = Column::hash() + 5;
-    for(size_t i = 0; i < _data.size(); ++i) {
-        hash += (_data[i] ? *_data[i] : 1) * i;
-    }
-    return hash;
+    size_t hash = Column::hash() + 'I';
+    return hash + _data.hash();
 }
 
 std::shared_ptr<Object> IntColumn::clone() const {
@@ -82,22 +77,23 @@ std::shared_ptr<Object> IntColumn::clone() const {
 std::vector<uint8_t> IntColumn::serialize() const {
     // we mark missing with a full byte, big waste of space
     // but byte alignment is a headache
+    return _data.serialize();
 
     // Write length of vector
-    std::vector<uint8_t> serialized = Serializable::serialize(this->_data.size());
-    std::vector<uint8_t> temp;
-    for(size_t i = 0; i < this->_data.size(); ++i) {
-        if(_data[i]){
-            temp = Serializable::serialize(true);
-            serialized.insert(serialized.end(), temp.begin(), temp.end());
-            temp = Serializable::serialize(*_data[i]);
-        } else {
-            temp = Serializable::serialize(false);
-        }
-        serialized.insert(serialized.end(), temp.begin(), temp.end());
-    }
+    /* std::vector<uint8_t> serialized = Serializable::serialize(this->_data.size()); */
+    /* std::vector<uint8_t> temp; */
+    /* for(size_t i = 0; i < this->_data.size(); ++i) { */
+    /*     if(_data[i]){ */
+    /*         temp = Serializable::serialize(true); */
+    /*         serialized.insert(serialized.end(), temp.begin(), temp.end()); */
+    /*         temp = Serializable::serialize(*_data[i]); */
+    /*     } else { */
+    /*         temp = Serializable::serialize(false); */
+    /*     } */
+    /*     serialized.insert(serialized.end(), temp.begin(), temp.end()); */
+    /* } */
 
-    return serialized;
+    /* return serialized; */
 }
 
 // Float Column
@@ -116,7 +112,7 @@ void FloatColumn::push_back(std::optional<double> val) {
 }
 
 std::optional<double> FloatColumn::get(size_t idx) const {
-  return _data[idx];
+  return _data.get(idx);
 }
 
 FloatColumn* FloatColumn::as_float() {
@@ -124,9 +120,7 @@ FloatColumn* FloatColumn::as_float() {
 }
 /** Set value at idx. An out of bound idx is undefined.  */
 std::optional<double> FloatColumn::set(size_t idx, std::optional<double> val) {
-    auto old = _data[idx];
-    _data[idx] = val;
-    return old;
+    return _data.set(idx, val);
 }
 
 size_t FloatColumn::size() const {
@@ -147,11 +141,7 @@ bool FloatColumn::equals(const Object *other) const {
 }
 
 size_t FloatColumn::hash() const {
-    size_t hash = Column::hash() + 5;
-    for(size_t i = 0; i < _data.size(); ++i) {
-        hash += (_data[i] ? *_data[i] : 1) * i;
-    }
-    return hash;
+    return Column::hash() + 'F' + _data.hash();
 }
 
 std::shared_ptr<Object> FloatColumn::clone() const {
@@ -161,22 +151,22 @@ std::shared_ptr<Object> FloatColumn::clone() const {
 std::vector<uint8_t> FloatColumn::serialize() const {
     // we mark missing with a full byte, big waste of space
     // but byte alignment is a headache
-
+    return _data.serialize();
     // Write length of vector
-    std::vector<uint8_t> serialized = Serializable::serialize(this->_data.size());
-    std::vector<uint8_t> temp;
-    for(size_t i = 0; i < this->_data.size(); ++i) {
-        if(_data[i]){
-            temp = Serializable::serialize(true);
-            serialized.insert(serialized.end(), temp.begin(), temp.end());
-            temp = Serializable::serialize(*_data[i]);
-        } else {
-            temp = Serializable::serialize(false);
-        }
-        serialized.insert(serialized.end(), temp.begin(), temp.end());
-    }
+    /* std::vector<uint8_t> serialized = Serializable::serialize(this->_data.size()); */
+    /* std::vector<uint8_t> temp; */
+    /* for(size_t i = 0; i < this->_data.size(); ++i) { */
+    /*     if(_data[i]){ */
+    /*         temp = Serializable::serialize(true); */
+    /*         serialized.insert(serialized.end(), temp.begin(), temp.end()); */
+    /*         temp = Serializable::serialize(*_data[i]); */
+    /*     } else { */
+    /*         temp = Serializable::serialize(false); */
+    /*     } */
+    /*     serialized.insert(serialized.end(), temp.begin(), temp.end()); */
+    /* } */
 
-    return serialized;
+    /* return serialized; */
 }
 
 // Bool Column
@@ -195,7 +185,7 @@ void BoolColumn::push_back(std::optional<bool> val) {
 }
 
 std::optional<bool> BoolColumn::get(size_t idx) const {
-  return _data[idx];
+  return _data.get(idx);
 }
 
 BoolColumn* BoolColumn::as_bool() {
@@ -203,9 +193,7 @@ BoolColumn* BoolColumn::as_bool() {
 }
 /** Set value at idx. An out of bound idx is undefined.  */
 std::optional<bool> BoolColumn::set(size_t idx, std::optional<bool> val) {
-    auto old = _data[idx];
-    _data[idx] = val;
-    return old;
+    return _data.set(idx, val);
 }
 
 size_t BoolColumn::size() const {
@@ -226,11 +214,7 @@ bool BoolColumn::equals(const Object *other) const {
 }
 
 size_t BoolColumn::hash() const {
-    size_t hash = Column::hash() + 5;
-    for(size_t i = 0; i < _data.size(); ++i) {
-        hash += (_data[i] ? *_data[i] + 2 : 1) * i;
-    }
-    return hash;
+    return Column::hash() + 'B' + _data.hash();
 }
 
 std::shared_ptr<Object> BoolColumn::clone() const {
@@ -240,22 +224,23 @@ std::shared_ptr<Object> BoolColumn::clone() const {
 std::vector<uint8_t> BoolColumn::serialize() const {
     // we mark missing with a full byte, big waste of space
     // but byte alignment is a headache
+    return _data.serialize();
 
     // Write length of vector
-    std::vector<uint8_t> serialized = Serializable::serialize(this->_data.size());
-    std::vector<uint8_t> temp;
-    for(size_t i = 0; i < this->_data.size(); ++i) {
-        if(_data[i]){
-            temp = Serializable::serialize(true);
-            serialized.insert(serialized.end(), temp.begin(), temp.end());
-            temp = Serializable::serialize(*_data[i]);
-        } else {
-            temp = Serializable::serialize(false);
-        }
-        serialized.insert(serialized.end(), temp.begin(), temp.end());
-    }
+    /* std::vector<uint8_t> serialized = Serializable::serialize(this->_data.size()); */
+    /* std::vector<uint8_t> temp; */
+    /* for(size_t i = 0; i < this->_data.size(); ++i) { */
+    /*     if(_data[i]){ */
+    /*         temp = Serializable::serialize(true); */
+    /*         serialized.insert(serialized.end(), temp.begin(), temp.end()); */
+    /*         temp = Serializable::serialize(*_data[i]); */
+    /*     } else { */
+    /*         temp = Serializable::serialize(false); */
+    /*     } */
+    /*     serialized.insert(serialized.end(), temp.begin(), temp.end()); */
+    /* } */
 
-    return serialized;
+    /* return serialized; */
 }
 
 // String Column
@@ -274,7 +259,7 @@ void StringColumn::push_back(std::optional<std::string> val) {
 }
 
 std::optional<std::string> StringColumn::get(size_t idx) {
-  return _data[idx];
+  return _data.get(idx);
 }
 
 StringColumn* StringColumn::as_string() {
@@ -282,9 +267,7 @@ StringColumn* StringColumn::as_string() {
 }
 /** Set value at idx. An out of bound idx is undefined.  */
 std::optional<std::string> StringColumn::set(size_t idx, std::optional<std::string> val) {
-    auto old = _data[idx];
-    _data[idx] = val;
-    return old;
+    return _data.set(idx, val);
 }
 
 size_t StringColumn::size() const {
@@ -305,9 +288,9 @@ bool StringColumn::equals(const Object *other) const {
 }
 
 size_t StringColumn::hash() const {
-    size_t hash = Column::hash() + 5;
+    size_t hash = Column::hash() + 'S';
     for(size_t i = 0; i < _data.size(); ++i) {
-        auto str = _data[i];
+        auto str = _data.get(i);
         if(str) {
             size_t inner_hash = str->length() * i;
             for(size_t j = 0; j < str->length(); ++j){
@@ -328,20 +311,21 @@ std::shared_ptr<Object> StringColumn::clone() const {
 std::vector<uint8_t> StringColumn::serialize() const {
     // we mark missing with a full byte, big waste of space
     // but byte alignment is a headache
+    return _data.serialize();
 
     // Write length of vector
-    std::vector<uint8_t> serialized = Serializable::serialize(this->_data.size());
-    std::vector<uint8_t> temp;
-    for(size_t i = 0; i < this->_data.size(); ++i) {
-        if(_data[i]){
-            temp = Serializable::serialize(true);
-            serialized.insert(serialized.end(), temp.begin(), temp.end());
-            temp = Serializable::serialize<std::string>(*_data[i]);
-        } else {
-            temp = Serializable::serialize(false);
-        }
-        serialized.insert(serialized.end(), temp.begin(), temp.end());
-    }
+    /* std::vector<uint8_t> serialized = Serializable::serialize(this->_data.size()); */
+    /* std::vector<uint8_t> temp; */
+    /* for(size_t i = 0; i < this->_data.size(); ++i) { */
+    /*     if(_data[i]){ */
+    /*         temp = Serializable::serialize(true); */
+    /*         serialized.insert(serialized.end(), temp.begin(), temp.end()); */
+    /*         temp = Serializable::serialize<std::string>(*_data[i]); */
+    /*     } else { */
+    /*         temp = Serializable::serialize(false); */
+    /*     } */
+    /*     serialized.insert(serialized.end(), temp.begin(), temp.end()); */
+    /* } */
 
-    return serialized;
+    /* return serialized; */
 }

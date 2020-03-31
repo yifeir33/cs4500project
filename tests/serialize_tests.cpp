@@ -6,6 +6,7 @@
 #include "test_rower.h"
 
 #include "util/serializable.h"
+#include "data/nullable_array.h"
 #include "data/dataframe.h"
 #include "data/schema.h"
 #include "data/column.h"
@@ -58,27 +59,137 @@ void push_to_vec(std::vector<uint8_t>& vec, uint8_t *buf, size_t len, const void
 
 SCENARIO("We can properly serialize and deserialize objects") {
 
+    GIVEN("A vector of boolean values") {
+        std::vector<bool> vec({false, true, true, true, false, true, false, true, true});
+        std::vector<uint8_t> serialized = Serializable::serialize<std::vector<bool>>(vec);
+        WHEN("It is serialized"){
+            THEN("It is serialized as a bitmap"){
+                std::vector<uint8_t> expected = Serializable::serialize<size_t>(9);
+                uint8_t byte1 = 0b10101110;
+                uint8_t byte2 = 0b1;
+                expected.push_back(byte1);
+                expected.push_back(byte2);
+                REQUIRE(compare_serialized(serialized, expected));
+            }
+
+            THEN("We can deserialize it"){
+                size_t pos = 0;
+                std::vector<bool> deserialized = Serializable::deserialize<std::vector<bool>>(serialized, pos);
+                REQUIRE(pos == serialized.size());
+                REQUIRE(vec.size() == deserialized.size());
+                for(size_t i = 0; i < vec.size(); ++i){
+                    REQUIRE(vec[i] == deserialized[i]);
+                }
+            }
+        }
+    }
+
+    GIVEN("A vector of boolean values (byte aligned)") {
+        std::vector<bool> vec({false, true, true, true, false, true, false, true});
+        std::vector<uint8_t> serialized = Serializable::serialize<std::vector<bool>>(vec);
+        WHEN("It is serialized"){
+            THEN("It is serialized as a bitmap"){
+                std::vector<uint8_t> expected = Serializable::serialize<size_t>(8);
+                uint8_t byte1 = 0b10101110;
+                expected.push_back(byte1);
+                REQUIRE(compare_serialized(serialized, expected));
+            }
+
+            THEN("We can deserialize it"){
+                size_t pos = 0;
+                std::vector<bool> deserialized = Serializable::deserialize<std::vector<bool>>(serialized, pos);
+                REQUIRE(pos == serialized.size());
+                REQUIRE(vec.size() == deserialized.size());
+                for(size_t i = 0; i < vec.size(); ++i){
+                    REQUIRE(vec[i] == deserialized[i]);
+                }
+            }
+        }
+    }
+
+    GIVEN("A Nullable Array"){
+        NullableArray<int> na;
+        na.push_back(1);
+        na.push_back(std::nullopt);
+        na.push_back(3);
+        na.push_back(4);
+        na.push_back(5);
+        na.push_back(6);
+        na.push_back(std::nullopt);
+        na.push_back(8);
+        na.push_back(9);
+
+        WHEN("We serialize it."){
+            std::vector<uint8_t> serialized = na.serialize();
+            THEN("We can deserialize it"){
+                size_t pos = 0;
+                auto deserialized = NullableArray<int>::deserialize(serialized, pos);
+                REQUIRE(pos == serialized.size());
+                REQUIRE(deserialized.size() == na.size());
+                REQUIRE(deserialized.get(0) == na.get(0));
+                REQUIRE(deserialized.get(1) == na.get(1));
+                REQUIRE(deserialized.get(2) == na.get(2));
+                REQUIRE(deserialized.get(3) == na.get(3));
+                REQUIRE(deserialized.get(4) == na.get(4));
+                REQUIRE(deserialized.get(5) == na.get(5));
+                REQUIRE(deserialized.get(6) == na.get(6));
+                REQUIRE(deserialized.get(7) == na.get(7));
+                REQUIRE(deserialized.get(8) == na.get(8));
+            }
+        }
+    }
+
+    GIVEN("A nullable array of booleans") {
+        /* BoolColumn bc(6, false, true, false, true, true, false); */
+        NullableArray<bool> nb;
+        nb.push_back(false);
+        nb.push_back(true);
+        nb.push_back(false);
+        nb.push_back(true);
+        nb.push_back(true);
+        nb.push_back(false);
+        nb.push_back(std::nullopt);
+        nb.push_back(std::nullopt);
+
+        WHEN("We serialize it.") {
+            std::vector<uint8_t> serialized = nb.serialize();
+
+            THEN("It can deserialized") {
+                size_t pos = 0;
+                NullableArray<bool> d_nb = NullableArray<bool>::deserialize(serialized, pos);
+                REQUIRE(pos == serialized.size());
+                REQUIRE(d_nb.size() == nb.size());
+                for(size_t i = 0; i < nb.size(); ++i){
+                    REQUIRE(d_nb.get(i) == nb.get(i));
+                }
+                REQUIRE(!d_nb.get(7));
+                REQUIRE(d_nb.equals(&nb));
+            }
+        }
+    }
+
     GIVEN("A basic int column.") {
         IntColumn ic(5, 1, 2, 3, 4, 5);
         WHEN("We serialize it.") {
             std::vector<uint8_t> serialized = ic.serialize();
-            THEN("It is correctly serialized"){
-                std::vector<uint8_t> expected;
-                uint8_t local_buf[sizeof(size_t)];
-                size_t len = 5;
-                push_to_vec(expected, local_buf, sizeof(size_t), &len);
-                bool exists = true;
-                for(int i = 1; i < 6; ++i) {
-                    push_to_vec(expected, local_buf, sizeof(bool), &exists);
-                    push_to_vec(expected, local_buf, sizeof(int), &i);
-                }
+            /* THEN("It is correctly serialized"){ */
+            /*     std::vector<uint8_t> expected; */
+            /*     uint8_t local_buf[sizeof(size_t)]; */
+            /*     size_t len = 5; */
+            /*     push_to_vec(expected, local_buf, sizeof(size_t), &len); */
+            /*     bool exists = true; */
+            /*     for(int i = 1; i < 6; ++i) { */
+            /*         push_to_vec(expected, local_buf, sizeof(bool), &exists); */
+            /*         push_to_vec(expected, local_buf, sizeof(int), &i); */
+            /*     } */
 
-                REQUIRE(compare_serialized(serialized, expected));
-            }
+            /*     REQUIRE(compare_serialized(serialized, expected)); */
+            /* } */
 
             THEN("We can deserialize it.") {
                 size_t pos = 0;
                 IntColumn d_ic = Serializable::deserialize<IntColumn>(serialized, pos);
+                REQUIRE(pos == serialized.size());
                 REQUIRE(ic.size() == d_ic.size());
                 REQUIRE(ic.get(0) == d_ic.get(0));
                 REQUIRE(ic.get(1) == d_ic.get(1));
@@ -96,25 +207,26 @@ SCENARIO("We can properly serialize and deserialize objects") {
         WHEN("We serialize it.") {
             std::vector<uint8_t> serialized = fc.serialize();
 
-            THEN("It is properly Serialized") {
-                std::vector<uint8_t> expected;
-                uint8_t local_buf[sizeof(size_t)];
-                size_t len = 4;
-                push_to_vec(expected, local_buf, sizeof(size_t), &len);
-                bool exists = true;
-                double values[] = {1.1, 2.2, 3.3};
-                for(size_t i = 0; i < 3; ++i) {
-                    push_to_vec(expected, local_buf, sizeof(bool), &exists);
-                    push_to_vec(expected, local_buf, sizeof(double), values + i);
-                }
-                exists = false;
-                push_to_vec(expected, local_buf, sizeof(bool), &exists);
+            /* THEN("It is properly Serialized") { */
+            /*     std::vector<uint8_t> expected; */
+            /*     uint8_t local_buf[sizeof(size_t)]; */
+            /*     size_t len = 4; */
+            /*     push_to_vec(expected, local_buf, sizeof(size_t), &len); */
+            /*     bool exists = true; */
+            /*     double values[] = {1.1, 2.2, 3.3}; */
+            /*     for(size_t i = 0; i < 3; ++i) { */
+            /*         push_to_vec(expected, local_buf, sizeof(bool), &exists); */
+            /*         push_to_vec(expected, local_buf, sizeof(double), values + i); */
+            /*     } */
+            /*     exists = false; */
+            /*     push_to_vec(expected, local_buf, sizeof(bool), &exists); */
 
-                REQUIRE(compare_serialized(serialized, expected));
-            }
+            /*     REQUIRE(compare_serialized(serialized, expected)); */
+            /* } */
             THEN("We can deserialize it."){
                 size_t pos = 0;
                 FloatColumn d_fc = Serializable::deserialize<FloatColumn>(serialized, pos);
+                REQUIRE(pos == serialized.size());
                 REQUIRE(fc.size() == d_fc.size());
                 REQUIRE((*fc.get(0) - *d_fc.get(0)) < 0.001);
                 REQUIRE((*fc.get(1) - *d_fc.get(1)) < 0.001);
@@ -133,31 +245,32 @@ SCENARIO("We can properly serialize and deserialize objects") {
         WHEN("We serialize it.") {
             std::vector<uint8_t> serialized = sc.serialize();
 
-            THEN("It is properly Serialized") {
-                std::vector<uint8_t> expected;
-                uint8_t local_buf[sizeof(size_t)];
+            /* THEN("It is properly Serialized") { */
+            /*     std::vector<uint8_t> expected; */
+            /*     uint8_t local_buf[sizeof(size_t)]; */
 
-                size_t len = 2;
-                push_to_vec(expected, local_buf, sizeof(size_t), &len);
+            /*     size_t len = 2; */
+            /*     push_to_vec(expected, local_buf, sizeof(size_t), &len); */
 
-                bool exists = true;
-                const char *test = "test";
-                push_to_vec(expected, local_buf, sizeof(bool), &exists);
+            /*     bool exists = true; */
+            /*     const char *test = "test"; */
+            /*     push_to_vec(expected, local_buf, sizeof(bool), &exists); */
 
-                len = 4;
-                push_to_vec(expected, local_buf, sizeof(size_t), &len);
+            /*     len = 4; */
+            /*     push_to_vec(expected, local_buf, sizeof(size_t), &len); */
 
-                push_to_vec(expected, local_buf, len, test);
+            /*     push_to_vec(expected, local_buf, len, test); */
 
-                exists = false;
-                push_to_vec(expected, local_buf, sizeof(bool), &exists);
+            /*     exists = false; */
+            /*     push_to_vec(expected, local_buf, sizeof(bool), &exists); */
 
-                REQUIRE(compare_serialized(serialized, expected));
-            }
+            /*     REQUIRE(compare_serialized(serialized, expected)); */
+            /* } */
 
             THEN("It can deserialized and move constructed") {
                 size_t pos = 0;
                 auto d_sc = deserialize_strcolumn_and_alloc(serialized, pos);
+                REQUIRE(pos == serialized.size());
                 REQUIRE(d_sc);
                 REQUIRE(d_sc->size() == sc.size());
                 REQUIRE(d_sc->get(0) == sc.get(0));
@@ -166,6 +279,7 @@ SCENARIO("We can properly serialize and deserialize objects") {
             }
         }
     }
+
     
     GIVEN("A schema") {
         Schema schema("ISBF");
@@ -196,6 +310,7 @@ SCENARIO("We can properly serialize and deserialize objects") {
             THEN("We can properly deserialize it") {
                 size_t pos = 0;
                 auto d_schema = deserialize_schema_and_alloc(serialized, pos);
+                REQUIRE(pos == serialized.size());
                 
                 REQUIRE(d_schema->width() == schema.width());
                 REQUIRE(d_schema->length() == schema.length());
@@ -216,6 +331,7 @@ SCENARIO("We can properly serialize and deserialize objects") {
 
             size_t pos = 0;
             auto d_df = deserialize_dataframe_and_alloc(serialized, pos);
+            REQUIRE(pos == serialized.size());
 
             REQUIRE(d_df);
 
