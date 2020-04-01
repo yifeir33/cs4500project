@@ -15,6 +15,10 @@ private:
     std::mutex _fd_mutex;
     int _sock_fd;
 
+    NetPort(const NetPort&) = delete;
+    NetPort& operator=(const NetPort&) = delete;
+    NetPort(NetPort&&) = delete;
+
 protected:
     static std::mutex instance_lock;
     static std::shared_ptr<NetPort> np_instance;
@@ -26,10 +30,6 @@ protected:
     std::atomic<std::chrono::time_point<std::chrono::steady_clock>> _watchdog;
 
     NetPort(const char *ip, in_port_t port);
-
-    NetPort(const NetPort&) = delete;
-    NetPort& operator=(const NetPort&) = delete;
-    NetPort(NetPort&&) = delete;
 
     virtual ~NetPort();
 

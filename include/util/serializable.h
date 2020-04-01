@@ -77,18 +77,18 @@ template<>
 inline std::vector<uint8_t> Serializable::serialize<std::vector<bool>>(std::vector<bool> vb){
     std::vector<uint8_t> vec = Serializable::serialize<size_t>(vb.size());
 
-    uint8_t byte = 0;
+    uint8_t bm_byte = 0;
     size_t pos = 0;
     for(size_t i = 0; i < vb.size(); ++i){
         if(pos == 8){
-            vec.push_back(byte);
-            byte = vb[i] & 1;
+            vec.push_back(bm_byte);
+            bm_byte = vb[i] & 1;
             pos = 1;
         } else {
-            byte |= (vb[i] & 1) << (pos++);
+            bm_byte |= (vb[i] & 1) << (pos++);
         }
     }
-    if(pos > 0) vec.push_back(byte);
+    if(pos > 0) vec.push_back(bm_byte);
 
     return vec;
 }

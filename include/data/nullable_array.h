@@ -113,7 +113,7 @@ public:
         return std::make_shared<NullableArray<T>>(*this);
     }
 
-    inline std::vector<uint8_t> serialize() const {
+    inline std::vector<uint8_t> serialize() const override {
         // size - can we drop this?
         /* std::vector<uint8_t> serialized = Serializable::serialize<size_t>(_data.size()); */
         // bitmap

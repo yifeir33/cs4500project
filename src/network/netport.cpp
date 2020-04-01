@@ -130,15 +130,16 @@ void NetPort::listen_on_socket(int conn_count){
 
     this->_initial();
 
-    while(this->_running && this->dog_is_alive()){
+    while(this->_running && this->dog_is_alive()) {
         if(this->_accept_connection()){
             this->_on_new_connection();
             this->feed_dog();
         }
         this->_clean_up_closed();
         this->_main_loop_work();
+        std::this_thread::yield();
     }
-    p("Exiting").p('\n');
+    pln("Exiting");
     this->_running = false;
 }
 
