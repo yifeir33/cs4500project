@@ -30,27 +30,26 @@ SRC_OBJS     := $(UTIL_OBJS) $(NETWORK_OBJS) $(DATA_OBJS) $(ADAPTER_OBJS)
 CXX          := g++
 CXXFLAGS     := -Wall -Wextra -Wpedantic -g -O3 -pthread -std=c++17 -I$(INCLUDE) -I$(BOAT)/include/
 
-.PHONY: all demo test clean directories valgrind
+.PHONY: all wordcount test clean directories valgrind
 
-all: directories $(BIN)/demo
+all: directories $(BIN)/wordcount
 
 # have fun killing these background proccess ;)
-demo: directories $(BIN)/demo
-	$(BIN)/demo --server > /dev/null 2>&1 & 
-	$(BIN)/demo --producer > /dev/null 2>&1 &
-	$(BIN)/demo --counter > /dev/null 2>&1 &
-	$(BIN)/demo --summarizer
+wordcount: directories $(BIN)/wordcount
+	$(BIN)/wordcount --server > /dev/null 2>&1 & 
+	$(BIN)/wordcount --reader --file $(TOP_DIR)test_file.txt > /dev/null 2>&1 &
+	$(BIN)/wordcount --counter
+
 
 # Makes and executes test binary
 test: directories $(BIN)/tests
 	$(BIN)/tests
 
-valgrind: directories $(BIN)/demo $(BIN)/tests
+valgrind: directories $(BIN)/wordcount $(BIN)/tests
 	valgrind --leak-check=full -s $(BIN)/tests
-	valgrind --leak-check=full -s $(BIN)/demo --server &
-	valgrind --leak-check=full -s $(BIN)/demo --producer &
-	valgrind --leak-check=full -s $(BIN)/demo --counter &
-	valgrind --leak-check=full -s $(BIN)/demo --summarizer &
+	valgrind --leak-check=full -s $(BIN)/wordcount --server > /dev/null 2>&1 & 
+	valgrind --leak-check=full -s $(BIN)/wordcount --reader --file $(TOP_DIR)test_file.txt > /dev/null 2>&1 &
+	valgrind --leak-check=full -s $(BIN)/wordcount --counter
 
 directories: $(OBJ) $(BIN)
 
@@ -60,14 +59,14 @@ $(OBJ):
 $(BIN):
 	mkdir -p $@
 
-$(BIN)/demo: $(SRC_OBJS) $(BOAT)/lib/libsorer.a $(OBJ)/demo_main.o
+$(BIN)/wordcount: $(SRC_OBJS) $(BOAT)/lib/libsorer.a $(OBJ)/wordcount_main.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 # Test binary
 $(BIN)/tests: $(SRC_OBJS) $(TEST_OBJS) $(BOAT)/lib/libsorer.a
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
-$(OBJ)/demo_main.o: $(SRC)/demo_main.cpp
+$(OBJ)/wordcount_main.o: $(SRC)/wordcount_main.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Util
@@ -98,4 +97,4 @@ $(OBJ)/%.o: $(TESTS)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm $(OBJ)/*.o $(BIN)/tests $(BIN)/demo; $(MAKE) -C $(BOAT) clean
+	rm $(OBJ)/*.o $(BIN)/tests $(BIN)/wordcount; $(MAKE) -C $(BOAT) clean

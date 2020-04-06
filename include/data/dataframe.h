@@ -5,8 +5,8 @@
 #include <thread>
 #include <optional>
 
-#include "util/object.h"
 #include "util/serializable.h"
+#include "data/datachunk.h"
 #include "data/schema.h"
 #include "data/rower.h"
 #include "data/fielder.h"
@@ -28,6 +28,7 @@ class DataFrame : public Serializable {
 private:
     std::unique_ptr<Schema> _schema;
     std::vector<std::unique_ptr<Column>> _columns;
+    /* std::vector<std::unique_ptr<DataChunk>> _data; */
 
     std::unique_ptr<Column> _get_col_from_type(char type) const;
 

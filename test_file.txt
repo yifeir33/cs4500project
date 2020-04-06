@@ -1,0 +1,4 @@
+example test file to make sure that the basics 
+of our program work without error and that even
+though it doesn't meet goals it will still do something
+basic.

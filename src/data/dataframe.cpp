@@ -39,6 +39,7 @@ std::shared_ptr<DataFrame> DataFrame::from_array(KVStore::Key k, int *arr, size_
     return df;
 }
 
+
 std::shared_ptr<DataFrame> DataFrame::from_scalar(KVStore::Key k, int val){
     auto df = std::make_shared<DataFrame>();
     auto col = std::make_unique<IntColumn>();
