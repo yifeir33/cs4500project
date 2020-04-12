@@ -12,7 +12,6 @@
 
 class DataFrame;
 
-// Uses singleton pattern
 class KVStore : public Object {
 public:
     class Key : public Serializable {
@@ -60,8 +59,12 @@ public:
             return k.hash();
         }
     };
+    KVStore() = default;
 
-    static KVStore& get_instance();
+    // Delete Copy/Move Semantics (for singleton)
+    /* KVStore(const KVStore&) = default; */
+    /* KVStore& operator=(const KVStore&) = default; */
+    /* KVStore(KVStore&&) = default; */
 
     std::shared_ptr<DataFrame> get_local(const Key& k);
 
@@ -82,17 +85,6 @@ public:
     std::shared_ptr<Object> clone() const override;
 
 private:
-    // private constructor so it can only be constructed by itself to enforce singleton
-    KVStore() = default;
-
-    // Delete Copy/Move Semantics (for singleton)
-    KVStore(const KVStore&) = delete;
-    KVStore& operator=(const KVStore&) = delete;
-    KVStore(KVStore&&) = delete;
-
-    // store single instance of class
-    static KVStore kv_instance;
-
     mutable std::mutex _local_map_mutex;
     std::unordered_map<Key, std::shared_ptr<DataFrame>, KeyHasher> _local_map;
     mutable std::mutex _other_node_mutex;

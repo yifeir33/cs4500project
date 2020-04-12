@@ -56,6 +56,8 @@ protected:
 public:
     void listen_on_socket(int conn_count);
 
+    sockaddr_in get_self() const;
+
     virtual void request_teardown() = 0;
 
     size_t hash() const override;

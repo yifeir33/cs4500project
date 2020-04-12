@@ -78,6 +78,27 @@ std::shared_ptr<DataFrame> Client::get_value(const KVStore::Key& key) {
     return nullptr;
 }
 
+std::vector<uint8_t> Client::_operation_request_helper(std::shared_ptr<CtCConnection> c, std::string key, size_t opcode) {
+    auto request = std::make_shared<CtCConnection::OperationRequest>(key, opcode);
+    std::unique_lock<std::mutex> lk(request->mutex);
+    c->add_request(request);
+    request->cv.wait(lk);
+    return request->result;
+}
+
+std::vector<uint8_t> Client::operation_request(sockaddr_in node, std::string key, size_t opcode) {
+    std::unique_lock<std::mutex> conn_lock(_connections_mutex);
+    for(size_t i = 0; i < _connections.size(); ++i) {
+        auto ctc_conn = std::dynamic_pointer_cast<CtCConnection>(_connections[i]);
+        assert(ctc_conn);
+        if(socket_util::sockaddr_eq(ctc_conn->get_conn_other(), node)){
+            conn_lock.unlock();
+            return this->_operation_request_helper(ctc_conn, key, opcode);
+        }
+    }
+    return std::vector<uint8_t>(); // empty vector
+}
+
 std::shared_ptr<Connection> Client::_new_connection(int new_conn_fd, sockaddr_in other) {
     return std::make_shared<CtCConnection>(new_conn_fd, other, *this, true);
 }
@@ -143,3 +164,31 @@ void Client::_on_clean_up(std::shared_ptr<Connection> c) {
 void Client::_on_new_connection() {
     // TODO
 }
+
+std::vector<sockaddr_in> Client::get_full_client_list() const {
+    std::vector<sockaddr_in> clients({_self});
+    clients.insert(clients.end(), _other_clients.begin(), _other_clients.end());
+    return clients;
+}
+
+bool Client::push_remote(sockaddr_in node, std::string distributed_key,
+                         std::vector<DistributedStore::MetaData> md, std::vector<std::string> keys,
+                         std::vector<std::shared_ptr<DataFrame>> dfs) {
+    if(socket_util::sockaddr_eq(node, _self)){
+        DistributedStore::get_instance().insert(distributed_key, md, keys, dfs);
+        return true;
+    } 
+    // find connection
+    std::unique_lock guard(_oclient_mutex);
+    for(auto conn: _connections) {
+        auto ctc_conn = std::dynamic_pointer_cast<CtCConnection>(conn);
+        assert(ctc_conn);
+        if(socket_util::sockaddr_eq(ctc_conn->get_conn_other(), node)){
+            guard.unlock();
+            // TODO
+            return true;
+        }
+    }
+    return false;
+}
+

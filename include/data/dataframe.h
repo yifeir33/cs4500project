@@ -6,7 +6,6 @@
 #include <optional>
 
 #include "util/serializable.h"
-#include "data/datachunk.h"
 #include "data/schema.h"
 #include "data/rower.h"
 #include "data/fielder.h"
@@ -28,7 +27,6 @@ class DataFrame : public Serializable {
 private:
     std::unique_ptr<Schema> _schema;
     std::vector<std::unique_ptr<Column>> _columns;
-    /* std::vector<std::unique_ptr<DataChunk>> _data; */
 
     std::unique_ptr<Column> _get_col_from_type(char type) const;
 
@@ -168,7 +166,7 @@ public:
 
     /** Create a new dataframe, constructed from rows for which the given Rower
     * returned true from its accept method. */
-    DataFrame* filter(Rower& r) const;
+    std::shared_ptr<DataFrame> filter(Rower& r) const;
 
     /** Print the dataframe in SoR format to standard output. */
     void print() const;

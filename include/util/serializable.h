@@ -7,6 +7,7 @@
 #include <string>
 #include <cstring>
 #include <cassert>
+#include <netinet/ip.h>
 
 #include "util/object.h"
 
@@ -114,4 +115,24 @@ inline std::vector<bool> Serializable::deserialize<std::vector<bool>>(const std:
     }
     if(inner_pos != 0) ++pos;
     return vec;
+}
+
+// specialize serialize/deserialize for sockaddr_in
+template<>
+inline std::vector<uint8_t> Serializable::serialize<sockaddr_in>(sockaddr_in addr){
+    std::vector<uint8_t> serialized;
+    auto f_ptr = reinterpret_cast<uint8_t *>(&addr);
+    serialized.insert(serialized.end(),
+                      f_ptr,
+                      f_ptr + sizeof(addr));
+
+    return serialized;
+}
+
+template<>
+inline sockaddr_in Serializable::deserialize<sockaddr_in>(const std::vector<uint8_t>& data, size_t& pos) {
+    sockaddr_in addr;
+    memcpy(&addr, data.data() + pos, sizeof(sockaddr_in));
+    pos += sizeof(sockaddr);
+    return addr;
 }

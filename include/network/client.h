@@ -8,6 +8,7 @@
 #include "network/netport.h"
 #include "network/packet.h"
 #include "data/kvstore.h"
+#include "data/distributed_store.h"
 
 class CtSConnection;
 class CtCConnection;
@@ -37,6 +38,9 @@ private:
     std::shared_ptr<Connection> _new_connection(int new_conn_fd, sockaddr_in other) override;
 
     // blocking
+    std::vector<uint8_t> _operation_request_helper(std::shared_ptr<CtCConnection> c, std::string key, size_t opcode);
+
+    // blocking
     std::shared_ptr<DataFrame> _get_value_helper(std::shared_ptr<CtCConnection> c, const std::string& key);
 
     void _connect_to_client(sockaddr_in client);
@@ -52,6 +56,15 @@ public:
     Packet get_registration_packet();
 
     void request_teardown() override;
+
+    std::vector<sockaddr_in> get_full_client_list() const;
+
+    bool push_remote(sockaddr_in node, std::string distributed_key,
+                     std::vector<DistributedStore::MetaData> md, std::vector<std::string> keys,
+                     std::vector<std::shared_ptr<DataFrame>> dfs);
+
+    // blocking
+    std::vector<uint8_t> operation_request(sockaddr_in node, std::string key, size_t opcode);
 
     // this is blocking
     std::shared_ptr<DataFrame> get_value(const KVStore::Key& key);

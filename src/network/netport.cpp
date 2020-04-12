@@ -154,3 +154,7 @@ bool NetPort::equals(const Object *other) const {
 std::shared_ptr<Object> NetPort::clone() const {
     return nullptr;
 }
+
+sockaddr_in NetPort::get_self() const {
+    return _self;
+}

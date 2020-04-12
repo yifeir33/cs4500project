@@ -60,13 +60,6 @@ bool KVStore::Key::operator==(const Key& other) const {
     return false;
 }
 
-// static variable/function
-KVStore KVStore::kv_instance = KVStore();
-
-KVStore& KVStore::get_instance() {
-    return kv_instance;
-}
-
 // instance functions
 std::shared_ptr<DataFrame> KVStore::get_local(const Key& k) {
     std::lock_guard<std::mutex> local_lock(_local_map_mutex);

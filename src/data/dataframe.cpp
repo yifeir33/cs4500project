@@ -343,8 +343,8 @@ void DataFrame::pmap(Rower& rower) const {
 
 /** Create a new dataframe, constructed from rows for which the given Rower
 * returned true from its accept method. */
-DataFrame* DataFrame::filter(Rower& r) const {
-    DataFrame *df = new DataFrame(*this);
+std::shared_ptr<DataFrame> DataFrame::filter(Rower& r) const {
+    auto df = std::make_shared<DataFrame>(this);
 
     for(size_t i = 0; i < _schema->length(); ++i) {
         Row row(*_schema);
