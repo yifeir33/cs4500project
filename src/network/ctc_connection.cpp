@@ -93,7 +93,7 @@ void CtCConnection::_as_client() {
     Packet p;
     p.type = Packet::Type::ID;
     if(!this->_send_packet(p)){
-        pln("Failed to send!");
+        pln("Failed to send (as client)!");
         this->_finished = true;
     }
 }
@@ -115,7 +115,7 @@ void CtCConnection::_send_keys(){
     }
 
     if(!this->_send_packet(key_packet)){
-        pln("Failed to send!");
+        pln("Failed to send keys!");
         this->_finished = true;
     }
 }
