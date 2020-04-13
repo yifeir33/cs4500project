@@ -23,6 +23,8 @@ public:
 
     CtCConnection(int fd, sockaddr_in other, Client& c, bool r);
 
+    ~CtCConnection();
+
     void add_request(std::shared_ptr<ValueRequest> request);
 
     void run() override;

@@ -37,6 +37,7 @@ void NetPort::feed_dog(){
 }
 
 bool NetPort::dog_is_alive() const {
+    return true; // turn off watchdog
     std::chrono::time_point<std::chrono::steady_clock> wd = _watchdog;
 
     bool out =  std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - wd).count()

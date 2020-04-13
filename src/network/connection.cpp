@@ -42,6 +42,7 @@ void Connection::feed_dog(){
 }
 
 bool Connection::dog_is_alive() const {
+    return true; // turn off dog
     bool out =  std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - _watchdog).count()
                 < WATCHDOG_TIMEOUT;
     if(!out){
@@ -58,6 +59,7 @@ bool Connection::_keep_alive() {
 }
 
 void Connection::_send_shutdown() {
+    pln("_send_shutdown");
     Packet packet;
     packet.type = Packet::Type::SHUTDOWN;
     packet.value.clear();
@@ -86,6 +88,9 @@ bool Connection::_send_packet(Packet& packet) {
             if(errno != EWOULDBLOCK && errno != EAGAIN) {
                 perror("Error sending packet: ");
                 return false;
+            } else {
+                // try to clear send buffer
+                std::this_thread::yield();
             }
         } else if(sent > 0) {
             this->feed_dog();
@@ -279,6 +284,7 @@ void Connection::connect_to_target(sockaddr_in target){
 
 
 void Connection::ask_to_finish(){
+    pln("ask_to_finish");
     this->_finished = true;
 }
 
@@ -288,6 +294,7 @@ void Connection::send_teardown_request() {
     packet.type = Packet::Type::TEARDOWN;
     packet.value.clear();
     if(!this->_send_packet(packet)){
+        pln("Failed to send teardown");
         this->_finished = true;
     }
 }

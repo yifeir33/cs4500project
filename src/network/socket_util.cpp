@@ -50,6 +50,17 @@ namespace socket_util{
             perror("Error setting socket options: ");
             return -1;
         }
+        // increase buffer sizes
+        opt = 1000000;
+        if(setsockopt(sock_fd, SOL_SOCKET, SO_SNDBUF, &opt, sizeof(opt)) < 0){
+            perror("Error setting socket options: ");
+            return -1;
+        }
+        opt = 1000000;
+        if(setsockopt(sock_fd, SOL_SOCKET, SO_RCVBUF, &opt, sizeof(opt)) < 0){
+            perror("Error setting socket options: ");
+            return -1;
+        }
         // bind to address
         if(bind(sock_fd, reinterpret_cast<sockaddr *>(&self), sizeof(self)) < 0){
             perror("Failed to bind to address!");

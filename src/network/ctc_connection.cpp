@@ -12,6 +12,28 @@ _client(c), _receiver(r) {
     p("CTC Created!").p('\n');
 }
 
+CtCConnection::~CtCConnection() {
+    std::unique_lock<std::mutex> rql(_request_queue_mutex);
+    while(!_request_queue.empty()) {
+        auto request = _request_queue.front();
+        _request_queue.pop(); // remove above request from queue
+        std::unique_lock<std::mutex> rl(request->mutex);
+        request->value = nullptr;
+        request->cv.notify_all();
+    }
+    rql.unlock();
+
+    std::unique_lock<std::mutex> wrl(_waiting_requests_mutex);
+    while(!_waiting_requests.empty()) {
+        auto request = _waiting_requests.front();
+        _waiting_requests.pop_front();
+        std::unique_lock<std::mutex> rl(request->mutex);
+        request->value = nullptr;
+        request->cv.notify_all();
+    }
+    wrl.unlock();
+}
+
 void CtCConnection::add_request(std::shared_ptr<CtCConnection::ValueRequest> request) {
     std::lock_guard<std::mutex> lock(_request_queue_mutex);
     _request_queue.push(request);
@@ -71,6 +93,7 @@ void CtCConnection::_as_client() {
     Packet p;
     p.type = Packet::Type::ID;
     if(!this->_send_packet(p)){
+        pln("Failed to send!");
         this->_finished = true;
     }
 }
@@ -92,6 +115,7 @@ void CtCConnection::_send_keys(){
     }
 
     if(!this->_send_packet(key_packet)){
+        pln("Failed to send!");
         this->_finished = true;
     }
 }

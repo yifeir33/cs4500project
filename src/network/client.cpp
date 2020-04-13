@@ -59,12 +59,15 @@ void Client::request_teardown() {
 std::shared_ptr<DataFrame> Client::_get_value_helper(std::shared_ptr<CtCConnection> c, const std::string& key) {
     auto request = std::make_shared<CtCConnection::ValueRequest>(key);
     std::unique_lock<std::mutex> lk(request->mutex);
+    assert(!c->is_finished());
     c->add_request(request);
     request->cv.wait(lk);
     return request->value;
 }
 
 std::shared_ptr<DataFrame> Client::get_value(const KVStore::Key& key) {
+    this->_clean_up_closed();
+    this->_check_client_updates();
     std::unique_lock<std::mutex> conn_lock(_connections_mutex);
     for(size_t i = 0; i < _connections.size(); ++i) {
         auto ctc_conn = std::dynamic_pointer_cast<CtCConnection>(_connections[i]);
@@ -99,6 +102,7 @@ void Client::_initial() {
 
 
 void Client::_check_client_updates() {
+    std::this_thread::yield();
     if(!this->_client_update) return;
 
     std::list<sockaddr_in> to_connect;
@@ -133,6 +137,12 @@ void Client::_connect_to_client(sockaddr_in client){
 
 void Client::_main_loop_work() {
     this->_check_client_updates();
+    if(this->_server_connection->is_finished()) {
+        pln("Error: Server connection closed prematurely!");
+        this->_server_connection->join();
+        this->_server_connection.reset();
+        this->_initial();
+    }
 }
 
 void Client::_on_clean_up(std::shared_ptr<Connection> c) {

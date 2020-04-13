@@ -30,26 +30,30 @@ SRC_OBJS     := $(UTIL_OBJS) $(NETWORK_OBJS) $(DATA_OBJS) $(ADAPTER_OBJS)
 CXX          := g++
 CXXFLAGS     := -Wall -Wextra -Wpedantic -g -O3 -pthread -std=c++17 -I$(INCLUDE) -I$(BOAT)/include/
 
-.PHONY: all wordcount test clean directories valgrind
+.PHONY: all linus test clean directories valgrind
 
-all: directories $(BIN)/wordcount
+all: directories $(BIN)/linus
 
 # have fun killing these background proccess ;)
-wordcount: directories $(BIN)/wordcount
-	$(BIN)/wordcount --server > /dev/null 2>&1 & 
-	$(BIN)/wordcount --reader --file $(TOP_DIR)test_file.txt > /dev/null 2>&1 &
-	$(BIN)/wordcount --counter
+linus: directories $(BIN)/linus
+	$(BIN)/linus --commits > /dev/null 2>&1 &
+	sleep 60
+	$(BIN)/linus --projects > /dev/null 2>&1 &
+	$(BIN)/linus --server > /dev/null 2>&1 & 
+	$(BIN)/linus --users
 
 
 # Makes and executes test binary
 test: directories $(BIN)/tests
 	$(BIN)/tests
 
-valgrind: directories $(BIN)/wordcount $(BIN)/tests
+valgrind: directories $(BIN)/linus $(BIN)/tests
 	valgrind --leak-check=full -s $(BIN)/tests
-	valgrind --leak-check=full -s $(BIN)/wordcount --server > /dev/null 2>&1 & 
-	valgrind --leak-check=full -s $(BIN)/wordcount --reader --file $(TOP_DIR)test_file.txt > /dev/null 2>&1 &
-	valgrind --leak-check=full -s $(BIN)/wordcount --counter
+	valgrind --leak-check=full -s $(BIN)/linus --commits > /dev/null 2>&1 &
+	sleep 60
+	valgrind --leak-check=full -s $(BIN)/linus --server > /dev/null 2>&1 & 
+	valgrind --leak-check=full -s $(BIN)/linus --projects > /dev/null 2>&1 &
+	valgrind --leak-check=full -s $(BIN)/linus --users
 
 directories: $(OBJ) $(BIN)
 
@@ -59,14 +63,14 @@ $(OBJ):
 $(BIN):
 	mkdir -p $@
 
-$(BIN)/wordcount: $(SRC_OBJS) $(BOAT)/lib/libsorer.a $(OBJ)/wordcount_main.o
+$(BIN)/linus: $(SRC_OBJS) $(BOAT)/lib/libsorer.a $(OBJ)/linus_main.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 # Test binary
 $(BIN)/tests: $(SRC_OBJS) $(TEST_OBJS) $(BOAT)/lib/libsorer.a
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
-$(OBJ)/wordcount_main.o: $(SRC)/wordcount_main.cpp
+$(OBJ)/linus_main.o: $(SRC)/linus_main.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Util
@@ -97,4 +101,4 @@ $(OBJ)/%.o: $(TESTS)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm $(OBJ)/*.o $(BIN)/tests $(BIN)/wordcount; $(MAKE) -C $(BOAT) clean
+	rm $(OBJ)/*.o $(BIN)/tests $(BIN)/linus; $(MAKE) -C $(BOAT) clean

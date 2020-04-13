@@ -20,8 +20,7 @@ void CtSConnection::run() {
 
     while(!this->is_finished() && this->dog_is_alive()) {
         if(this->receive_and_parse()) this->feed_dog();
-        if(!this->_keep_alive())
-            break;
+        /* if(!this->_keep_alive()) break; */
 
         _client.feed_dog();
         /* std::this_thread::sleep_for(std::chrono::milliseconds(500)); */
@@ -74,6 +73,7 @@ ParseResult CtSConnection::_parse_data(Packet &packet) {
         _client._client_update = true;
         return ParseResult::Success;
     } else if(packet.type == Packet::Type::TEARDOWN){
+        pln("Teardown Received!");
         _client._running = false;
         /* this->ask_to_finish(); */
         return ParseResult::Success;
