@@ -20,7 +20,8 @@ class StringColumn;
  * Represents one column of a data frame which holds values of a single type.
  * This abstract class defines methods overriden in subclasses. There is
  * one subclass per element type. Columns are mutable, equality is pointer
- * equality. */
+ * equality. For the most part these are implemented through the composition of
+ * a nullable array. */
 class Column : public Serializable {
 public:
     virtual ~Column();
@@ -33,7 +34,9 @@ public:
     virtual StringColumn* as_string();
 
     /** Type appropriate push_back methods. Calling the wrong method is
-    * undefined behavior. **/
+    * undefined behavior. Pushes the given value onto the end
+    * of the column. If the optional is null, then it marks 
+    * that value as missing. **/
     virtual void push_back(std::optional<int> val);
     virtual void push_back(std::optional<bool> val);
     virtual void push_back(std::optional<double> val);
@@ -45,6 +48,7 @@ public:
     /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'. */
     virtual char get_type() const = 0;
 
+    /** Returns the hashcode of the column. */
     size_t hash() const override;
 };
  
@@ -54,8 +58,8 @@ public:
  */
 class IntColumn : public Column {
 private:
+    /** Internal data structure holding the data */
     NullableArray<int> _data;
-    /* std::vector<std::optional<int>> _data; */
 
 public:
     IntColumn() = default;
@@ -63,28 +67,44 @@ public:
     IntColumn(IntColumn&& other) = default;
     IntColumn(int n, ...);
 
+    /** Pushes the given value onto the end
+    * of the column. If the optional is null, then it marks 
+    * that value as missing. **/
     void push_back(std::optional<int> val) override;
 
+    /** Get the value at the given index. A null optional 
+     * signifies a missing value. */
     std::optional<int> get(size_t idx) const;
 
+    /** Get this as an integer column. */
     IntColumn* as_int() override;
+
     /** Set value at idx. An out of bound idx is undefined.  */
     std::optional<int> set(size_t idx, std::optional<int> val);
 
+    /** Returns the number of elements in the column. */
     size_t size() const override;
 
+    /** Gets the type of the column. Returns 'I' */
     char get_type() const override;
 
+    /** Test for equality */
     bool equals(const Object *other) const override;
 
+    /** Returns the hashcode of the column. */
     size_t hash() const override;
     
+    /** Returns a new copy of the current column. */
     std::shared_ptr<Object> clone() const override;
 
+    /** Serializes the current column into a byte representation. */
     std::vector<uint8_t> serialize() const override;
 };
 
-// specialization of deserialize
+/** Specialization of deserialize for IntColumn
+ *
+ * Converts from the serialized form of this column to an object containing 
+ * the data */
 template<>
 inline IntColumn Serializable::deserialize<IntColumn>(const std::vector<uint8_t>& data, size_t& pos) {
     auto na = NullableArray<int>::deserialize(data, pos);
@@ -93,17 +113,6 @@ inline IntColumn Serializable::deserialize<IntColumn>(const std::vector<uint8_t>
         ic.push_back(na.get(i));
     }
     return ic;
-    /* IntColumn ic; */
-    /* size_t len = Serializable::deserialize<size_t>(data, pos); */
-    /* for(size_t i = 0; i < len; ++i) { */
-    /*     bool exists = Serializable::deserialize<bool>(data, pos); */
-    /*     if(exists) { */
-    /*         ic.push_back(Serializable::deserialize<int>(data, pos)); */
-    /*     } else { */
-    /*         ic.push_back(std::nullopt); */
-    /*     } */
-    /* } */
-    /* return ic; */
 }
  
 /*************************************************************************
@@ -112,8 +121,8 @@ inline IntColumn Serializable::deserialize<IntColumn>(const std::vector<uint8_t>
  */
 class FloatColumn : public Column {
 private:
+    /** Internal data structure holding the data */
     NullableArray<double> _data;
-    /* std::vector<std::optional<double>> _data; */
 
 public:
     FloatColumn() = default;
@@ -121,28 +130,44 @@ public:
     FloatColumn(FloatColumn&& other) = default;
     FloatColumn(int n, ...);
 
+    /** Pushes the given value onto the end
+    * of the column. If the optional is null, then it marks 
+    * that value as missing. **/
     void push_back(std::optional<double> val) override;
 
+    /** Get the value at the given index. A null optional 
+     * signifies a missing value. */
     std::optional<double> get(size_t idx) const;
 
+    /** Get this as an float column. */
     FloatColumn* as_float() override;
+
     /** Set value at idx. An out of bound idx is undefined.  */
     std::optional<double> set(size_t idx, std::optional<double> val);
 
+    /** Returns the number of elements in the column. */
     size_t size() const override;
 
+    /** Gets the type of the column. Returns 'F' */
     char get_type() const override;
 
+    /** Test for equality */
     bool equals(const Object *other) const override;
 
+    /** Returns the hashcode of the column. */
     size_t hash() const override;
 
+    /** Returns a new copy of the current column. */
     std::shared_ptr<Object> clone() const override;
 
+    /** Serializes the current column into a byte representation. */
     std::vector<uint8_t> serialize() const override;
 };
 
-// specialization of deserialize
+/** Specialization of deserialize for FloatColumn
+ *
+ * Converts from the serialized form of this column to an object containing 
+ * the data */
 template<>
 inline FloatColumn Serializable::deserialize<FloatColumn>(const std::vector<uint8_t>& data, size_t& pos) {
     auto na = NullableArray<double>::deserialize(data, pos);
@@ -151,17 +176,6 @@ inline FloatColumn Serializable::deserialize<FloatColumn>(const std::vector<uint
         fc.push_back(na.get(i));
     }
     return fc;
-    /* FloatColumn fc; */
-    /* size_t len = Serializable::deserialize<size_t>(data, pos); */
-    /* for(size_t i = 0; i < len; ++i) { */
-    /*     bool exists = Serializable::deserialize<bool>(data, pos); */
-    /*     if(exists) { */
-    /*         fc.push_back(Serializable::deserialize<double>(data, pos)); */
-    /*     } else { */
-    /*         fc.push_back(std::nullopt); */
-    /*     } */
-    /* } */
-    /* return fc; */
 }
 
 /*************************************************************************
@@ -170,8 +184,8 @@ inline FloatColumn Serializable::deserialize<FloatColumn>(const std::vector<uint
  */
 class BoolColumn : public Column {
 private:
+    /** Internal data structure holding the data */
     NullableArray<bool> _data;
-    /* std::vector<std::optional<bool>> _data; */
 
 public:
     BoolColumn() = default;
@@ -179,28 +193,44 @@ public:
     BoolColumn(BoolColumn&& other) = default;
     BoolColumn(int n, ...);
 
+    /** Pushes the given value onto the end
+    * of the column. If the optional is null, then it marks 
+    * that value as missing. **/
     void push_back(std::optional<bool> val) override;
 
+    /** Get the value at the given index. A null optional 
+     * signifies a missing value. */
     std::optional<bool> get(size_t idx) const;
 
+    /** Get this as an boolean column. */
     BoolColumn* as_bool() override;
+
     /** Set value at idx. An out of bound idx is undefined.  */
     std::optional<bool> set(size_t idx, std::optional<bool> val);
 
+    /** Returns the number of elements in the column. */
     size_t size() const override;
 
+    /** Gets the type of the column. Returns 'B' */
     char get_type() const override;
 
+    /** Test for equality */
     bool equals(const Object *other) const override;
 
+    /** Returns the hashcode of the column. */
     size_t hash() const override;
 
+    /** Returns a new copy of the current column. */
     std::shared_ptr<Object> clone() const override;
 
+    /** Serializes the current column into a byte representation. */
     std::vector<uint8_t> serialize() const override;
 };
 
-// specialization of deserialize
+/** Specialization of deserialize for BoolColumn
+ *
+ * Converts from the serialized form of this column to an object containing 
+ * the data */
 template<>
 inline BoolColumn Serializable::deserialize<BoolColumn>(const std::vector<uint8_t>& data, size_t& pos) {
     auto na = NullableArray<bool>::deserialize(data, pos);
@@ -209,17 +239,6 @@ inline BoolColumn Serializable::deserialize<BoolColumn>(const std::vector<uint8_
         bc.push_back(na.get(i));
     }
     return bc;
-    /* BoolColumn bc; */
-    /* size_t len = Serializable::deserialize<size_t>(data, pos); */
-    /* for(size_t i = 0; i < len; ++i) { */
-    /*     bool exists = Serializable::deserialize<bool>(data, pos); */
-    /*     if(exists) { */
-    /*         bc.push_back(Serializable::deserialize<bool>(data, pos)); */
-    /*     } else { */
-    /*         bc.push_back(std::nullopt); */
-    /*     } */
-    /* } */
-    /* return bc; */
 }
  
 /*************************************************************************
@@ -229,8 +248,8 @@ inline BoolColumn Serializable::deserialize<BoolColumn>(const std::vector<uint8_
  */
 class StringColumn : public Column {
 private:
+    /** Internal data structure holding the data */
     NullableArray<std::string> _data;
-    /* std::vector<std::optional<std::string>> _data; */
 
 public:
     StringColumn() = default;
@@ -238,29 +257,44 @@ public:
     StringColumn(StringColumn&& other) = default;
     StringColumn(int n, ...);
 
+    /** Pushes the given value onto the end
+    * of the column. If the optional is null, then it marks 
+    * that value as missing. **/
     void push_back(std::optional<std::string> val) override;
 
+    /** Get the value at the given index. A null optional 
+     * signifies a missing value. */
     std::optional<std::string> get(size_t idx);
 
+    /** Get this as an string column. */
     StringColumn* as_string() override;
 
     /** Set value at idx. An out of bound idx is undefined.  */
     std::optional<std::string> set(size_t idx, std::optional<std::string> val);
 
+    /** Returns the number of elements in the column. */
     size_t size() const override;
 
+    /** Gets the type of the column. Returns 'S' */
     char get_type() const override;
 
+    /** Test for equality */
     bool equals(const Object *other) const override;
 
+    /** Returns the hashcode of the column. */
     size_t hash() const override;
 
+    /** Returns a new copy of the current column. */
     std::shared_ptr<Object> clone() const override;
 
+    /** Serializes the current column into a byte representation. */
     std::vector<uint8_t> serialize() const override;
 };
 
-// specialization of deserialize
+/** Specialization of deserialize for StringColumn
+ *
+ * Converts from the serialized form of this column to an object containing 
+ * the data */
 template<>
 inline StringColumn Serializable::deserialize<StringColumn>(const std::vector<uint8_t>& data, size_t& pos) {
     auto na = NullableArray<std::string>::deserialize(data, pos);
@@ -269,15 +303,4 @@ inline StringColumn Serializable::deserialize<StringColumn>(const std::vector<ui
         sc.push_back(na.get(i));
     }
     return sc;
-    /* StringColumn sc; */
-    /* size_t len = Serializable::deserialize<size_t>(data, pos); */
-    /* for(size_t i = 0; i < len; ++i) { */
-    /*     bool exists = Serializable::deserialize<bool>(data, pos); */
-    /*     if(exists) { */
-    /*         sc.push_back(Serializable::deserialize<std::string>(data, pos)); */
-    /*     } else { */
-    /*         sc.push_back(std::nullopt); */
-    /*     } */
-    /* } */
-    /* return sc; */
 }

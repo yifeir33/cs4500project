@@ -84,8 +84,6 @@ DataFrame::DataFrame() : _schema(std::make_unique<Schema>()) {}
 
 DataFrame::DataFrame(const DataFrame& df) : DataFrame(std::make_unique<Schema>(*df._schema)) {}
 
-/** Create a data frame from a schema and columns. All columns are created
-* empty. */
 DataFrame::DataFrame(std::unique_ptr<Schema> schema) : _schema(std::move(schema)), _columns() {
     for(size_t i = 0; i < _schema->width(); ++i){
         auto col = _get_col_from_type(_schema->col_type(i));
@@ -93,11 +91,6 @@ DataFrame::DataFrame(std::unique_ptr<Schema> schema) : _schema(std::move(schema)
         _columns.push_back(std::move(col));
     }
 }
-
-/* DataFrame::DataFrame(DataFrame&& other) : _schema(std::move(other._schema)), _columns(std::move(other._columns)) { */
-/*     other._schema = nullptr; */
-/*     other._columns.clear(); */
-/* } */
 
 DataFrame::~DataFrame() {}
 
@@ -117,8 +110,6 @@ std::unique_ptr<Column> DataFrame::_get_col_from_type(char type) const {
     }
 }
 
-/** Returns the dataframe's schema. Modifying the schema after a dataframe
-* has been created in undefined. */
 const Schema& DataFrame::get_schema() const {
     return *_schema;
 }
@@ -162,19 +153,14 @@ std::optional<std::string> DataFrame::get_string(size_t col, size_t row) const {
     return column->get(row);
 }
 
-/** Return the offset of the given column name or -1 if no such col. */
-int DataFrame::get_col(std::string& col) const {
+int DataFrame::get_col(const std::string& col) const {
     return _schema->col_idx(col);
 }
 
-/** Return the offset of the given row name or -1 if no such row. */
-int DataFrame::get_row(std::string& row) const {
+int DataFrame::get_row(const std::string& row) const {
     return _schema->row_idx(row);
 }
 
-/** Set the value at the given column and row to the given value.
-* If the column is not  of the right type or the indices are out of
-* bound, the result is undefined. */
 void DataFrame::set(size_t col, size_t row, std::optional<int> val) {
     _columns[col]->as_int()->set(row, val);
 }
@@ -191,10 +177,6 @@ void DataFrame::set(size_t col, size_t row, std::optional<std::string> val) {
     _columns[col]->as_string()->set(row, val);
 }
 
-/** Set the fields of the given row object with values from the columns at
-* the given offset.  If the row is not form the same schema as the
-* dataframe, results are undefined.
-*/
 void DataFrame::fill_row(size_t idx, Row& row) const {
     row.set_index(idx);
     for(size_t c = 0; c < _columns.size(); ++c){
@@ -218,8 +200,6 @@ void DataFrame::fill_row(size_t idx, Row& row) const {
     }
 }
 
-/** Add a row at the end of this dataframe. The row is expected to have
-*  the right schema and be filled with values, otherwise undedined.  */
 void DataFrame::add_row(Row& row) {
     for(size_t c = 0; c < _columns.size(); ++c){
         switch(_columns[c]->get_type()){
@@ -242,7 +222,6 @@ void DataFrame::add_row(Row& row) {
     }
 }
 
-/** The number of rows in the dataframe. */
 size_t DataFrame::nrows() const {
     if(ncols() > 0){
         return _columns[0]->size();
@@ -251,12 +230,10 @@ size_t DataFrame::nrows() const {
     } 
 }
 
-/** The number of columns in the dataframe.*/
 size_t DataFrame::ncols() const {
     return _columns.size();
 }
 
-/** Visit rows in order */
 void DataFrame::map(Rower& r) const {
     Row row(*_schema);
     for(size_t i = 0; i < this->nrows(); ++i) {
@@ -282,8 +259,6 @@ void DataFrame::_pmap_helper(size_t row_start, size_t row_end, Rower& rower) con
     }
 }
 
-/** This method clones the Rower and executes the map in parallel. Join is
-  * used at the end to merge the results. */
 void DataFrame::pmap(Rower& rower) const {
     size_t row_cnt = this->nrows();
     // decide how many threads to use
@@ -340,11 +315,8 @@ void DataFrame::pmap(Rower& rower) const {
     }
 }
 
-
-/** Create a new dataframe, constructed from rows for which the given Rower
-* returned true from its accept method. */
-DataFrame* DataFrame::filter(Rower& r) const {
-    DataFrame *df = new DataFrame(*this);
+std::shared_ptr<DataFrame> DataFrame::filter(Rower& r) const {
+    auto df = std::make_shared<DataFrame>(*this);
 
     for(size_t i = 0; i < _schema->length(); ++i) {
         Row row(*_schema);
@@ -356,8 +328,6 @@ DataFrame* DataFrame::filter(Rower& r) const {
     return df;
 }
 
-
-/** Print the dataframe in SoR format to standard output. */
 void DataFrame::print() const {
     PrintRower pr;
     this->map(pr);

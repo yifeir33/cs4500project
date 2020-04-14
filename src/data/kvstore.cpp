@@ -112,6 +112,11 @@ std::shared_ptr<DataFrame> KVStore::get_or_wait(const Key& k, time_t timeout_ms)
 }
 
 void KVStore::set(const Key& k, const std::shared_ptr<DataFrame>& df){
+    { // scope to control lock
+        // ensure it doesn't exist remotely. This should be changed in the future.
+        std::lock_guard<std::mutex> remote_lock(_other_node_mutex);
+        assert(_other_nodes.find(k) == _other_nodes.end());
+    }
     std::lock_guard<std::mutex> local_lock(_local_map_mutex);
     _local_map.insert_or_assign(k, df);
 }

@@ -6,12 +6,23 @@
 
 #include "util/serializable.h"
 
+/** A template class representing an array with the possibility of having missing
+ * values. To acheive this is uses a bitmap to represent whether the value exists
+ * or not, and a vector to actually store the data. The downside of this approach
+ * is that the two internal arrays have bad locality, resulting in more cache
+ * misses. Another note is the bitmap (Vector<bool>) does not work with
+ * other STL algorithms. */
 template < class T >
 class NullableArray : public Serializable {
 private:
+    /** Store boolean values representing whether the value at that index exists
+     * if true in a space efficient manner. */
     std::vector<bool> _bitmap;
+    /** Store the actual data. Missing values are simply default initialized,
+     * using them as non-missing values is undefined behavior. */
     std::vector<T> _data;
 
+    /** Private constructor used for serialization to simplify the logic. */
     NullableArray(std::vector<bool> bitmap, std::vector<T> data){
         assert(bitmap.size() == data.size());
         _bitmap = bitmap;
@@ -23,6 +34,11 @@ public:
     NullableArray(const NullableArray<T>&) = default;
     NullableArray(NullableArray<T>&&) = default;
 
+    /** 
+     * If the optional exists, puts the value on the back of the data
+     * and marks it as existing in the bitmap. Otherwise, default constructs a value
+     * on the back of the data and marks it as non-existient in the bitmap.
+     */
     inline void push_back(std::optional<T> val){
         if(val){
             _data.push_back(*val);
@@ -33,22 +49,8 @@ public:
         }
     }
 
-    /* inline std::optional<const T&> operator[](size_t pos) const { */
-    /*     assert(pos < _data.size()); */
-    /*     if(_bitmap[pos]){ */
-    /*         return std::optional<T>(_data[pos]); */
-    /*     } */
-    /*     return std::nullopt; */
-    /* } */
-
-    /* inline std::optional<T&> operator[](size_t pos) { */
-    /*     assert(pos < _data.size()); */
-    /*     if(_bitmap[pos]){ */
-    /*         return std::optional<T>(_data[pos]); */
-    /*     } */
-    /*     return std::nullopt; */
-    /* } */
-
+    /** Returns the value at the given index if it exists as a non-null optional.
+     * Otherwise returns a null optional. An invalid index is undefined behavior */
     inline std::optional<T> get(size_t pos) const {
         assert(pos < _data.size());
         if(_bitmap[pos]){
@@ -57,6 +59,9 @@ public:
         return std::nullopt;
     }
 
+    /** Sets the value at the given index to the given value if it exists, and
+     * records it as existing. Otherwise it sets it to a default constructed value,
+     * and sets is as missing. */
     inline std::optional<T> set(size_t pos, std::optional<T> val){
         assert(pos < _data.size());
         std::optional<T> old = ((_bitmap[pos]) ? std::optional<T>(_data[pos]) : std::nullopt);
@@ -70,6 +75,9 @@ public:
         return old;
     }
 
+    /** Removes the given value in the list the list, and returns it.
+     * If it exists a non-null optional is returned, otherwise a null optional
+     * is returned. */
     inline std::optional<T> pop(size_t pos){
         assert(pos < _data.size());
         std::optional<T> val = std::nullopt;
@@ -81,10 +89,13 @@ public:
         return val;
     }
 
+    /** Returns the total number of elements in the array, including missing
+     * values. */
     inline size_t size() const {
         return _data.size();
     }
 
+    /** Tests for equality */
     inline bool equals(const Object *other) const override {
         auto ona = dynamic_cast<const NullableArray<T> *>(other);
         if(ona) {
@@ -93,10 +104,12 @@ public:
         return false;
     }
 
+    /** Overload of the equality operator. Tests for equality. */
     inline bool operator==(const NullableArray<T>& other) const {
         return _bitmap == other._bitmap && _data == other._data;
     }
 
+    /** Returns the hashcode of the array */
     inline size_t hash() const override {
         size_t hash = _data.size();
         for(size_t i = 0; i < _data.size(); ++i){
@@ -109,13 +122,13 @@ public:
         return hash;
     }
 
+    /** Returns a copy constructed instance of this object */
     inline std::shared_ptr<Object> clone() const override {
         return std::make_shared<NullableArray<T>>(*this);
     }
 
+    /** Serializes the data into byte form */
     inline std::vector<uint8_t> serialize() const override {
-        // size - can we drop this?
-        /* std::vector<uint8_t> serialized = Serializable::serialize<size_t>(_data.size()); */
         // bitmap
         std::vector<uint8_t> serialized = Serializable::serialize<std::vector<bool>>(_bitmap);
         // data
@@ -140,6 +153,10 @@ public:
         return serialized;
     }
 
+    /** Implementation of its own deserialize method. Due to C++ template rules,
+     * we cannot provide a specialization of Serializable::deserialize() that is
+     * generic over the inner type T for a NullableArray. Therefore we implement our
+     * own deserialize method. This is not ideal, but is the best solution we found. */
     static inline NullableArray<T> deserialize(std::vector<uint8_t> data, size_t& pos){
         std::vector<bool> bitmap = Serializable::deserialize<std::vector<bool>>(data, pos);
         std::vector<T> arr_data;

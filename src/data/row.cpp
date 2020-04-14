@@ -6,37 +6,28 @@ Row::Row(const Schema& scm) : _width(scm.width()), _types(new char[_width]), _va
     }
 }
 
-Row::~Row() {
-    delete[] _types;
-}
-
-/** Setters: set the given column with the given value. Setting a column with
-* a value of the wrong type is undefined. */
 void Row::set(size_t col, std::optional<int> val) {
     assert(col < _width);
     assert(_types[col] == 'I');
-    _values[col] = val;
+    _values[col] = std::move(val);
 }
 
 void Row::set(size_t col, std::optional<double> val) {
     assert(col < _width);
     assert(_types[col] == 'F');
-    _values[col] = val;
+    _values[col] = std::move(val);
 }
 
 void Row::set(size_t col, std::optional<bool> val) {
     assert(col < _width);
     assert(_types[col] == 'B');
-    _values[col] = val;
+    _values[col] = std::move(val);
 }
 
-/** The string is external. */
 void Row::set(size_t col, std::optional<std::string> val){
-    _values[col] = val;
+    _values[col] = std::move(val);
 }
 
-/** Set/get the index of this row (ie. its position in the dataframe. This is
-*  only used for informational purposes, unused otherwise */
 void Row::set_index(size_t idx) {
     _index = idx;
 
@@ -46,8 +37,6 @@ size_t Row::get_index() const {
     return _index;
 }
 
-/** Getters: get the value at the given column. If the column is not
-* of the requested type, the result is undefined. */
 std::optional<int> Row::get_int(size_t col) const {
     return std::get<std::optional<int>>(_values[col]);
 }
@@ -64,20 +53,15 @@ std::optional<std::string> Row::get_string(size_t col) const {
     return std::get<std::optional<std::string>>(_values[col]);
 }
 
-/** Number of fields in the row. */
 size_t Row::width() const {
     return _width;
 }
 
-/** Type of the field at the given position. An idx >= width is  undefined. */
 char Row::col_type(size_t idx) const {
     assert(idx < _width);
     return _types[idx];
 }
 
-/** Given a Fielder, visit every field of this row. The first argument is
-* index of the row in the dataframe.
-* Calling this method before the row's fields have been set is undefined. */
 void Row::visit(size_t idx, Fielder& f) const {
     assert(idx == _index);
 

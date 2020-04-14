@@ -68,7 +68,7 @@ char Schema::col_type(size_t idx) const {
 }
 
 /** Given a column name return its index, or -1. */
-int Schema::col_idx(std::string& name) const {
+int Schema::col_idx(const std::string& name) const {
     for(size_t i = 0; i < _columnNames.size(); ++i) {
         if(_columnNames[i]->compare(name) == 0){
             return i;
@@ -78,7 +78,7 @@ int Schema::col_idx(std::string& name) const {
 }
 
 /** Given a row name return its index, or -1. */
-int Schema::row_idx(std::string& name) const {
+int Schema::row_idx(const std::string& name) const {
     for(size_t i = 0; i < _rowNames.size(); ++i) {
         if(_rowNames[i]->compare(name) == 0){
             return i;

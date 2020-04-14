@@ -1,3 +1,4 @@
+#include <iostream>
 #include "catch.hpp"
 #include "test_util.h"
 #include "test_rower.h"
@@ -14,14 +15,14 @@ SCENARIO("Can construct and use dataframe"){
         REQUIRE(s->width() == 8);
 
         DataFrame df(std::move(s));
-        WHEN("Data is added"){
-            generate_large_dataframe(df, ROW_CNT);
+        generate_large_dataframe(df, ROW_CNT);
 
+        WHEN("There is data in the dataframe"){
             THEN("The dataframe length changes"){
                 REQUIRE(df.nrows() == ROW_CNT);
             }
         }
-        WHEN("The data is operated on in sequentially and in parallel results are the same") {
+        WHEN("The data is operated on  sequentially and in parallel results are the same") {
             // sum things single thread
             TestSumRower tsr_sequential;
             TestSumRower tsr_parallel;
