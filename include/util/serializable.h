@@ -13,25 +13,23 @@
 /**************************************************************************
  * Serializable  ::
  * This is a class used for serializing an object. Any object extends the serializable
- * contains a serialize and deserialize method.
- * The objects will be categorized to three categories to serialize
- * 1. string
- * 2. uint_8 (primitive type include float, int, boolean)
- * 3. other object
+ * contains a serialize method implemenation, and must specialize 
+ * the deserialize static method. Implementations for primitive types, std::string,
+ * and std::vector<bool> are provided in this header. 
  */
 class Serializable : public Object {
 public:
-        /*
-         * The method calls to throw an exception for serializable.
-         */
+    /*
+     * A custom exception for when the provided data is too short to deserialize.
+     */
     class ShortSerializedDataException : public std::exception {
         const char *what() const throw() override {
             return "Given data is too short to deserialize!";
         }
     };
-        /*
-         * The method to deserialize a primitive type data.
-         */
+    /*
+     * The template method to deserialize a primitive type data.
+     */
     template< typename T > 
         static T deserialize(const std::vector<uint8_t>& data, size_t& pos) {
             static_assert(std::is_fundamental_v<T>, "Must specialize this function for base class!");
@@ -44,9 +42,9 @@ public:
             return val;
         }
 
-        /*
-         * The method to serialize a primitive type data.
-         */
+    /*
+     * The template method to serialize a primitive type data.
+     */
     template < typename T >
         static std::vector<uint8_t> serialize(T t) {
             static_assert(std::is_fundamental_v<T>, "Must be a primitive type to serialize!");
@@ -56,21 +54,15 @@ public:
             return vec;
         }
 
+    /** The pure virtual method to override to implement a custom serialize
+     * function for subclasses. */
     virtual std::vector<uint8_t> serialize() const = 0;
-
-    /* static std::vector<uint8_t> serialize_string(const std::string& s) { */
-    /*     std::vector<uint8_t> vec = Serializable::serialize<size_t>(s.size()); */
-    /*     for(size_t i = 0; i < s.size(); ++i){ */
-    /*         std::vector<uint8_t> temp = Serializable::serialize<char>(s[i]); */
-    /*         vec.insert(vec.end(), temp.begin(), temp.end()); */
-    /*     } */
-    /*     return vec; */
-    /* } */
 };
 
-        /*
-         * The method to serialize a string data.
-         */
+/*
+ * Specializes serialize and deserialize for std::string. Converts it to a 
+ * byte form representation.
+ */
 template<>
 inline std::vector<uint8_t> Serializable::serialize<std::string>(std::string s){
     std::vector<uint8_t> vec = Serializable::serialize<size_t>(s.size());
@@ -82,9 +74,6 @@ inline std::vector<uint8_t> Serializable::serialize<std::string>(std::string s){
 }
 
 template<>
-    /*
-     * The method to deserialize a string data.
-     */
 inline std::string Serializable::deserialize<std::string>(const std::vector<uint8_t>& data, size_t& pos) {
     std::string s;
     size_t len = Serializable::deserialize<size_t>(data, pos);
@@ -94,7 +83,11 @@ inline std::string Serializable::deserialize<std::string>(const std::vector<uint
     return s;
 }
 
-// specialize serialize/deserialize for std::vector<bool> (bitmap)
+/*
+ * Specializes serialize and deserialize for std::vector<bool>. Converts it to a 
+ * byte form representation of a bitset - that is each boolean is represented in
+ * a single bit.
+ */
 template<>
 inline std::vector<uint8_t> Serializable::serialize<std::vector<bool>>(std::vector<bool> vb){
     std::vector<uint8_t> vec = Serializable::serialize<size_t>(vb.size());
@@ -115,9 +108,6 @@ inline std::vector<uint8_t> Serializable::serialize<std::vector<bool>>(std::vect
     return vec;
 }
 
-        /*
-         *
-         */
 template<>
 inline std::vector<bool> Serializable::deserialize<std::vector<bool>>(const std::vector<uint8_t>& data, size_t& pos) {
     std::vector<bool> vec;
