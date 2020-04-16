@@ -30,9 +30,9 @@ SRC_OBJS     := $(UTIL_OBJS) $(NETWORK_OBJS) $(DATA_OBJS) $(ADAPTER_OBJS)
 CXX          := g++
 CXXFLAGS     := -Wall -Wextra -Wpedantic -g -O3 -pthread -std=c++17 -I$(INCLUDE) -I$(BOAT)/include/
 
-.PHONY: all linus test clean directories valgrind
+.PHONY: all wordcount linus test clean directories valgrind
 
-all: directories $(BIN)/linus
+all: directories $(BIN)/linus $(BIN)/wordcount
 
 # have fun killing these background proccess ;)
 linus: directories $(BIN)/linus
@@ -66,11 +66,17 @@ $(BIN):
 $(BIN)/linus: $(SRC_OBJS) $(BOAT)/lib/libsorer.a $(OBJ)/linus_main.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
+$(BIN)/wordcount: $(SRC_OBJS) $(BOAT)/lib/libsorer.a $(OBJ)/wordcount_main.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
 # Test binary
 $(BIN)/tests: $(SRC_OBJS) $(TEST_OBJS) $(BOAT)/lib/libsorer.a
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 $(OBJ)/linus_main.o: $(SRC)/linus_main.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ)/wordcount_main.o: $(SRC)/wordcount_main.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Util
