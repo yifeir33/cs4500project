@@ -145,11 +145,6 @@ void Client::_main_loop_work() {
     }
 }
 
-void Client::_on_clean_up(std::shared_ptr<Connection> c) {
-    // TODO
-    assert(c);
-}
+void Client::_on_clean_up([[maybe_unused]] std::shared_ptr<Connection> c) {}
 
-void Client::_on_new_connection() {
-    // TODO
-}
+void Client::_on_new_connection() {}

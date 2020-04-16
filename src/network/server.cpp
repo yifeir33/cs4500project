@@ -22,12 +22,10 @@ std::weak_ptr<Server> Server::get_instance() {
 
 Server::Server(const char *ip, in_port_t port) : NetPort(ip, port), _clients(), _passed_update(0), _expected_update(0), _new_update(false) {}
 
-Server::~Server() {}
-
-void Server::update_and_alert(sockaddr_in saddr) {
+void Server::update_and_alert(sockaddr_in caddr) {
     // update
     std::unique_lock<std::mutex> client_lock(_client_mutex);
-    this->_clients.push_back(saddr);
+    this->_clients.push_back(caddr);
     client_lock.unlock();
     // clean-up & alert
     this->_clean_up_closed();
@@ -97,14 +95,8 @@ void Server::_on_clean_up(std::shared_ptr<Connection> c) {
     this->remove_client(c->get_conn_other());
 }
 
-void Server::_initial() {
-    // TODO
-}
+void Server::_initial() {}
 
-void Server::_on_new_connection() {
-    // TODO
-}
+void Server::_on_new_connection() {}
 
-void Server::_main_loop_work() {
-    // TODO
-}
+void Server::_main_loop_work() {}

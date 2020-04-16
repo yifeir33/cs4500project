@@ -9,15 +9,18 @@ size_t Packet::get_size() const {
 }
 
 std::vector<uint8_t> Packet::pack() const {
-    std::vector<uint8_t> packed(this->value); // copy construct
+    std::vector<uint8_t> packed;
 
-    // prepend length of data
-    size_t len = this->value.size();
+    // add type of data
+    packed.push_back(this->type);
+
+    // add length of data (encoded as a 64 bit unsigned integer)
+    uint64_t len = this->value.size();
     uint8_t *f_ptr = reinterpret_cast<uint8_t *>(&len);
-    packed.insert(packed.begin(), f_ptr, f_ptr + sizeof(len));
+    packed.insert(packed.end(), f_ptr, f_ptr + sizeof(len));
 
-    // prepend type of data
-    packed.insert(packed.begin(), this->type);
+    // add data
+    packed.insert(packed.end(), this->value.begin(), this->value.end());
 
     return packed;
 }
@@ -29,7 +32,7 @@ int Packet::unpack(uint8_t *buffer, size_t buflen){
     this->value.clear();
 
     // unpack type
-    if(pos + sizeof(type) >= buflen){
+    if(pos + sizeof(type) > buflen){
         p("Too short for type!\n").p("Pos: ").p(pos).p(" BufLen: ").p(buflen).p('\n');
         p(sizeof(type)).p('\n');
         return -1;
@@ -38,7 +41,7 @@ int Packet::unpack(uint8_t *buffer, size_t buflen){
     pos += sizeof(this->type);
 
     // unpack length
-    if(pos + sizeof(remaining_len) >= buflen){
+    if(pos + sizeof(remaining_len) > buflen){
         p("Too short for length!\n").p("Pos: ").p(pos).p(" BufLen: ").p(buflen).p('\n');
         this->type = Type::NONE;
         return -1;
@@ -47,7 +50,7 @@ int Packet::unpack(uint8_t *buffer, size_t buflen){
     pos += sizeof(remaining_len);
     
     // unpack value
-    if(pos + remaining_len >= buflen){
+    if(pos + remaining_len > buflen){
         p("Too short for value!\n").p("Pos: ").p(pos).p(" BufLen: ").p(buflen).p('\n');
         this->type = Type::NONE;
         return -1;

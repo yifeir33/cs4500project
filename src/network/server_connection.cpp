@@ -5,8 +5,6 @@
 
 ServerConnection::ServerConnection(int cfd, sockaddr_in caddr, Server& s) : Connection(cfd, caddr), _server(s) {}
 
-ServerConnection::~ServerConnection(){}
-
 void ServerConnection::run() {
     pln("ServerConnection Started!");
     while(!this->is_finished() && this->dog_is_alive()){

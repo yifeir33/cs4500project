@@ -9,6 +9,8 @@
 namespace SorerDataframeAdapter {
     // anonymous namespace to simulate private
     namespace {
+        /** Given a parser initialized with a file, creates a schema from the
+         * file as identified by the parser. */
         std::unique_ptr<Schema> initialize_schema(SoRParser& parser) {
             // initialize schema
             std::string s_format;
@@ -31,6 +33,8 @@ namespace SorerDataframeAdapter {
             return std::make_unique<Schema>(s_format.c_str());
         }
 
+        /** Given an initialized parser, row, and column, attempts to parse
+         * it as an integer. */
         std::optional<int> parse_int(SoRParser& parser, size_t col, size_t row) {
             auto val = parser.getColIdx(col, row);
             if(val) {
@@ -39,6 +43,8 @@ namespace SorerDataframeAdapter {
             return std::nullopt;
         }
 
+        /** Given an initialized parser, row, and column, attempts to parse
+         * it as a boolean. */
         std::optional<bool> parse_bool(SoRParser& parser, size_t col, size_t row) {
             auto val = parser.getColIdx(col, row);
             if(val) {
@@ -47,6 +53,8 @@ namespace SorerDataframeAdapter {
             return std::nullopt;
         }
 
+        /** Given an initialized parser, row, and column, attempts to parse
+         * it as a double. */
         std::optional<double> parse_float(SoRParser& parser, size_t col, size_t row) {
             auto val = parser.getColIdx(col, row);
             if(val) {
@@ -55,15 +63,21 @@ namespace SorerDataframeAdapter {
             return std::nullopt;
         }
 
+        /** Given an initialized parser, row, and column, attempts to parse
+         * it as a string. */
         std::optional<std::string> parse_string(SoRParser& parser, size_t col, size_t row) {
             // already in the correct format
             return parser.getColIdx(col, row);
         }
 
+        /** Given an intialized parser, the indice of a row, and a Row object
+         * constructed from the schema identified by the parser, attempts 
+         * to parse from the file into the row object. Returns true on success,
+         * false otherwise (including EOF). */
         bool parse_and_fill_row(SoRParser& parser, size_t row, Row& row_obj){
             row_obj.set_index(row);
             for(size_t c = 0; c < parser.ncols(); ++c) {
-                // ew, they use C++ exceptions to signal EOF
+                // They use C++ exceptions to signal EOF
                 try {
                     switch(parser.getColType(c)) {
                         case SoRType::INT:
