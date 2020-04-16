@@ -73,7 +73,7 @@ bool Connection::_send_packet(Packet& packet) {
     ssize_t sent = 0;
 
     std::unique_lock<std::mutex> fd_lock(_fd_mutex);
-    while(attempt < 5){
+    while(1){
         fd_lock.unlock();
         if(this->_check_for_socket_errors() > 0){
             if(errno != EWOULDBLOCK && errno != EAGAIN && errno != 0) {
@@ -88,18 +88,17 @@ bool Connection::_send_packet(Packet& packet) {
             if(errno != EWOULDBLOCK && errno != EAGAIN) {
                 perror("Error sending packet: ");
                 return false;
-            } else {
-                // try to clear send buffer
-                std::this_thread::yield();
             }
         } else if(sent > 0) {
             this->feed_dog();
             return true;
         }
+        /* std::this_thread::sleep_for(std::chrono::microseconds(100)); */
         std::this_thread::yield();
         /* sleep(100); // sleep 100 milliseconds */
         ++attempt;
     }
+    p(attempt).pln(" Send Attempts Failed!");
     return false;
 }
 

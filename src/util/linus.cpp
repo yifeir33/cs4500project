@@ -34,7 +34,9 @@ void Linus::_users() {
     // read in users file
     auto udf = this->_read_in_file(KVStore::Key("users"), _filename);
     std::cout <<"Users Read in" <<std::endl;
+
     std::thread network_thread([]{ Client::get_instance().lock()->listen_on_socket(30); });
+
     // find linus and add him to a local dataframe
     for(size_t r = 0; r < udf->nrows(); ++r) {
         // look for linus
@@ -45,6 +47,7 @@ void Linus::_users() {
             break; // found linus
         }
     }
+
     // get the set of projects linus worked on and start creating degrees of users
     // convert from uuids to names
     std::string uuk = std::string("uuids_degree_");
@@ -61,7 +64,7 @@ void Linus::_users() {
         KVStore::get_instance().set(KVStore::Key(uk + std::to_string(degree)),
                                     degree_names);
 
-        std::cout <<"Degree " <<degree <<":" <<std::endl;
+        std::cout <<'\n' <<"Degree " <<degree <<":" <<'\n' <<std::endl;
         degree_names->print();
     }
     std::cout <<"Users Finished!" <<std::endl;

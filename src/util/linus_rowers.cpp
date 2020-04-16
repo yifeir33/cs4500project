@@ -96,7 +96,7 @@ bool UnorderedFilter::_ptr_equality(const UnorderedFilter& other_uf) const{
 UUIDsToProjectsFilter::UUIDsToProjectsFilter(std::shared_ptr<DataFrame> uuid_df) 
 : UnorderedFilter(std::make_unique<Schema>("I")) {
     IntSetGenerator isg;
-    uuid_df->pmap(isg);
+    uuid_df->map(isg);
     _set = isg.finish_set();
 }
 
@@ -126,7 +126,7 @@ bool UUIDsToProjectsFilter::equals(const Object *other) const {
 // ProjectsToUUIDsFilter
 ProjectsToUUIDsFilter::ProjectsToUUIDsFilter(std::shared_ptr<DataFrame> projects_df) : UnorderedFilter(std::make_unique<Schema>("I")) {
     IntSetGenerator isg;
-    projects_df->pmap(isg);
+    projects_df->map(isg);
     _set = isg.finish_set();
 }
 
@@ -158,7 +158,7 @@ bool ProjectsToUUIDsFilter::equals(const Object *other) const {
 UUIDsToNamesFilter::UUIDsToNamesFilter(std::shared_ptr<DataFrame> uuid_df) 
     : UnorderedFilter(std::make_unique<Schema>("S")) {
     IntSetGenerator isg;
-    uuid_df->pmap(isg);
+    uuid_df->map(isg);
     _set = isg.finish_set();
 }
 
