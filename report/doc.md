@@ -354,7 +354,14 @@ This is a class only used for testing, which inputs an array of prmitive type.
 And to make them to dataframe without doing any other functions.
 (what is required for M2)
 
-
+#### Linus
+This is an application could retrieve the people
+who worked on projects up to seven degrees of Linus Torvalds.
+Degree 1, is people who worked on the same projects as Linus, 
+Degree 2 is people who worked on projects with Degree 1 folks, and so on.
+This class was implemented with `IntsetGenerator`, `UnorderedFilter`, `UUIDsToProjectsFilter`,`ProjectsToUUIDsFilter`，
+`UUIDToNamesFilter`.
+How each one is being used will be explained in the use case:
 
 ### SorerDataFrameAdapter
 The implementation of this class contains a sorer that we used from other group (previous assignments). With that parser, and the file (also filename) that we were given, we want to return a Dataframe in a shared pointer and initialize the schema of the dataframe. And by having the dataframe, we can add row by row with a private method called `parse_and_fill_row()`, and while there is no more rows need to be parsed, it will return the dataframe.  
@@ -544,6 +551,44 @@ sum the large dataframe and store that sum as a local dataframe.
 constructed dataframe), and the sum the counter found, and compares them to
 ensure they both have the same value and no corruption on the network occured.
 
+#### WordCount
+This is our implementation fo the WordCount application. To 
+implement an app could count the word of the document, we
+implement a CounterRower.
+
+CounterRower: 
+Make sure the type of the column in this row is String, then counts the word in each row.
+
+#### Linus
+This is the application for Linus which is asked in M5.
+The functionalities is implemented by using the different rowers, and iterate
+through each name or id to find the next degree.
+
+1. IntSetGenerator   
+Rower that operates on a dataframe containing integers,
+  and adds all integers in that dataframe to a set (preventing 
+  duplicates), and returns said set when finish_set() is called. 
+  
+2. UnorderedFilter  
+Abstract class that creates a dataframe of values from the
+   given set of values. 
+ 
+2a. UUIDsToProjectsFilter :
+Given a dataframe of user ids stores a set of those ids. When mapped over
+  the commits dataframe constructs a unordered dataframe containing the PIDs
+  that those users have worked on. 
+
+2b. ProjectsToUUIDsFilter :
+Given a dataframe of pids, stores a set of those ids. When mapped over the
+    commits dataframe, constructs an unordered dataframe containing the UUIDs of
+    users who have worked on those projects.
+    
+2c. UUIDsToNamesFilter : 
+Given a dataframe of uuids, stores a set of those ids. When mapped over the
+     users dataframe, constructs an unordered dataframe containing the user names
+     of the users in the set. 
+   
+
 ## Open questions:
 
 ## Current Known Issues:
@@ -580,3 +625,10 @@ wrote from Fromscallar (single value);
 rewrote client；
 Added teardown and demo
 Seems to work sometimes, but not always.
+
+week 4:
+finish network
+
+week 5:
+implement linus
+add more test cases..
