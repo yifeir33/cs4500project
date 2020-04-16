@@ -30,9 +30,9 @@ SRC_OBJS     := $(UTIL_OBJS) $(NETWORK_OBJS) $(DATA_OBJS) $(ADAPTER_OBJS)
 CXX          := g++
 CXXFLAGS     := -Wall -Wextra -Wpedantic -g -O3 -pthread -std=c++17 -I$(INCLUDE) -I$(BOAT)/include/
 
-.PHONY: all wordcount linus test clean directories valgrind
+.PHONY: all wordcount linus demo test clean directories valgrind
 
-all: directories $(BIN)/linus $(BIN)/wordcount
+all: directories $(BIN)/linus $(BIN)/wordcount $(BIN)/demo $(BIN)/tests
 
 # have fun killing these background proccess ;)
 linus: directories $(BIN)/linus
@@ -69,6 +69,9 @@ $(BIN)/linus: $(SRC_OBJS) $(BOAT)/lib/libsorer.a $(OBJ)/linus_main.o
 $(BIN)/wordcount: $(SRC_OBJS) $(BOAT)/lib/libsorer.a $(OBJ)/wordcount_main.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
+$(BIN)/demo: $(SRC_OBJS) $(BOAT)/lib/libsorer.a $(OBJ)/demo_main.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
 # Test binary
 $(BIN)/tests: $(SRC_OBJS) $(TEST_OBJS) $(BOAT)/lib/libsorer.a
 	$(CXX) $(CXXFLAGS) $^ -o $@
@@ -77,6 +80,9 @@ $(OBJ)/linus_main.o: $(SRC)/linus_main.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(OBJ)/wordcount_main.o: $(SRC)/wordcount_main.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ)/demo_main.o: $(SRC)/demo_main.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Util
@@ -106,5 +112,6 @@ FORCE: ;
 $(OBJ)/%.o: $(TESTS)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+.SILENT: clean
 clean:
-	rm $(OBJ)/*.o $(BIN)/tests $(BIN)/linus; $(MAKE) -C $(BOAT) clean
+	rm $(OBJ)/*.o $(BIN)/*; $(MAKE) -C $(BOAT) clean
