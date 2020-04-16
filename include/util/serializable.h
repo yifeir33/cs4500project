@@ -10,14 +10,28 @@
 
 #include "util/object.h"
 
+/**************************************************************************
+ * Serializable  ::
+ * This is a class used for serializing an object. Any object extends the serializable
+ * contains a serialize and deserialize method.
+ * The objects will be categorized to three categories to serialize
+ * 1. string
+ * 2. uint_8 (primitive type include float, int, boolean)
+ * 3. other object
+ */
 class Serializable : public Object {
 public:
+        /*
+         * The method calls to throw an exception for serializable.
+         */
     class ShortSerializedDataException : public std::exception {
         const char *what() const throw() override {
             return "Given data is too short to deserialize!";
         }
     };
-
+        /*
+         * The method to deserialize a primitive type data.
+         */
     template< typename T > 
         static T deserialize(const std::vector<uint8_t>& data, size_t& pos) {
             static_assert(std::is_fundamental_v<T>, "Must specialize this function for base class!");
@@ -29,7 +43,10 @@ public:
             pos += sizeof(T);
             return val;
         }
-    
+
+        /*
+         * The method to serialize a primitive type data.
+         */
     template < typename T >
         static std::vector<uint8_t> serialize(T t) {
             static_assert(std::is_fundamental_v<T>, "Must be a primitive type to serialize!");
@@ -51,7 +68,9 @@ public:
     /* } */
 };
 
-// specialize serialize/deserialze for std::string
+        /*
+         * The method to serialize a string data.
+         */
 template<>
 inline std::vector<uint8_t> Serializable::serialize<std::string>(std::string s){
     std::vector<uint8_t> vec = Serializable::serialize<size_t>(s.size());
@@ -63,6 +82,9 @@ inline std::vector<uint8_t> Serializable::serialize<std::string>(std::string s){
 }
 
 template<>
+    /*
+     * The method to deserialize a string data.
+     */
 inline std::string Serializable::deserialize<std::string>(const std::vector<uint8_t>& data, size_t& pos) {
     std::string s;
     size_t len = Serializable::deserialize<size_t>(data, pos);
@@ -93,6 +115,9 @@ inline std::vector<uint8_t> Serializable::serialize<std::vector<bool>>(std::vect
     return vec;
 }
 
+        /*
+         *
+         */
 template<>
 inline std::vector<bool> Serializable::deserialize<std::vector<bool>>(const std::vector<uint8_t>& data, size_t& pos) {
     std::vector<bool> vec;

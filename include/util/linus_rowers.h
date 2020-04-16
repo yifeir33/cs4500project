@@ -53,6 +53,10 @@ protected:
 public:
     std::shared_ptr<DataFrame> finish_filter();
 
+    /** Once traversal of the data frame is complete the rowers that were
+     split off will be joined.  There will be one join per split. The
+     original object will be the last to be called join on. The join method
+     is reponsible for cleaning up memory. */
     void join(std::shared_ptr<Rower> other) override;
 
     size_t hash() const override;
@@ -65,6 +69,7 @@ public:
     UUIDsToProjectsFilter(std::shared_ptr<std::mutex> m, std::shared_ptr<DataFrame> df,
                           std::shared_ptr<std::unordered_set<int>> uuids);
 
+    /* the rower is taking the row that is going to be edited*/
     bool accept(Row& row) override;
 
     std::shared_ptr<Object> clone() const override;
@@ -79,6 +84,7 @@ public:
     ProjectsToUUIDsFilter(std::shared_ptr<std::mutex> m, std::shared_ptr<DataFrame> df,
                           std::shared_ptr<std::unordered_set<int>> pids);
 
+    /* the rower is taking the row that is going to be edited*/
     bool accept(Row& row) override;
 
     std::shared_ptr<Object> clone() const override;
@@ -93,6 +99,7 @@ public:
     UUIDsToNamesFilter(std::shared_ptr<std::mutex> m, std::shared_ptr<DataFrame> df,
                        std::shared_ptr<std::unordered_set<int>> uuids);
 
+    /* the rower is taking the row that is going to be edited*/
     bool accept(Row& row) override;
 
     std::shared_ptr<Object> clone() const override;
